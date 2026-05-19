@@ -17,4 +17,6 @@ export interface LetUserChooseArgs {
   readonly options: readonly ComparisonOption[];
 }
 
-export type LetUserChooseResult = ComparisonOption;
+export interface LetUserChooseResult {
+  readonly selected: ComparisonOption;
+}

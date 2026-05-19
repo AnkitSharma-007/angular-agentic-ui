@@ -80,4 +80,19 @@ describe('ComparisonTableComponent', () => {
     await fixture.whenStable();
     expect(fixture.nativeElement.textContent).toContain('Selection failed');
   });
+
+  it('highlights the chosen row from the `{ selected }` result envelope', async () => {
+    const fixture = TestBed.createComponent(ComparisonTableComponent);
+    fixture.componentRef.setInput('callId', 'c1');
+    fixture.componentRef.setInput('args', FIXTURE_ARGS);
+    fixture.componentRef.setInput('status', 'complete');
+    fixture.componentRef.setInput('result', { selected: FIXTURE_ARGS.options[1] });
+    await fixture.whenStable();
+
+    const items = (fixture.nativeElement as HTMLElement).querySelectorAll('.option');
+    expect(items).toHaveLength(2);
+    expect(items[0].classList.contains('chosen')).toBe(false);
+    expect(items[1].classList.contains('chosen')).toBe(true);
+    expect(items[0].classList.contains('dimmed')).toBe(true);
+  });
 });

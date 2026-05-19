@@ -111,5 +111,19 @@ describe('BookingConfirmationCardComponent', () => {
     await fixture.whenStable();
     expect(fixture.nativeElement.textContent).toContain('Cancelled by you');
     expect(fixture.nativeElement.textContent).toContain('too expensive');
+    expect(fixture.nativeElement.textContent).toContain('and the note');
+  });
+
+  it('renders the rejected state without a note clause when no reason supplied', async () => {
+    const fixture = TestBed.createComponent(BookingConfirmationCardComponent);
+    fixture.componentRef.setInput('callId', 'c1');
+    fixture.componentRef.setInput('args', FIXTURE_ARGS);
+    fixture.componentRef.setInput('status', 'rejected');
+    fixture.componentRef.setInput('interruptReason', null);
+    await fixture.whenStable();
+    const text = fixture.nativeElement.textContent ?? '';
+    expect(text).toContain('Cancelled by you');
+    expect(text).not.toContain('and the note');
+    expect(text).not.toContain('Cancelled by user.');
   });
 });

@@ -31,7 +31,7 @@ const letUserChooseArgsSchema = z.object({
 });
 
 async function letUserChooseExecutor(args: LetUserChooseArgs): Promise<LetUserChooseResult> {
-  return args.options[0];
+  return { selected: args.options[0] };
 }
 
 export const comparisonTableDescriptor: ToolDescriptor<

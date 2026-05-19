@@ -41,7 +41,7 @@ export class ComparisonTableComponent {
   protected readonly isError = computed(() => this.status() === 'error');
   protected readonly isRejected = computed(() => this.status() === 'rejected');
 
-  protected readonly chosenId = computed(() => this.result()?.id ?? null);
+  protected readonly chosenId = computed(() => this.result()?.selected?.id ?? null);
 
   protected choose(option: ComparisonOption): void {
     this.interrupts.decide(this.callId(), {

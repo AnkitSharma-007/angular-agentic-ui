@@ -180,6 +180,49 @@ describe('AgentEventStore', () => {
     expect(store.toolCalls()[0].interruptReason).toBe('too expensive');
   });
 
+  it('interrupt_resolved reject without a note leaves interruptReason null', () => {
+    store.beginTurn('t1');
+    store.pushEvent({
+      type: 'tool_call',
+      ts: 1,
+      turnId: 't1',
+      callId: 'c1',
+      name: 'bookFlight',
+      args: {},
+    });
+    store.pushEvent({
+      type: 'interrupt_resolved',
+      ts: 2,
+      turnId: 't1',
+      callId: 'c1',
+      decision: 'reject',
+    });
+    const call = store.toolCalls()[0];
+    expect(call.status).toBe('rejected');
+    expect(call.interruptReason).toBeNull();
+  });
+
+  it('interrupt_resolved reject treats a whitespace-only note as no note', () => {
+    store.beginTurn('t1');
+    store.pushEvent({
+      type: 'tool_call',
+      ts: 1,
+      turnId: 't1',
+      callId: 'c1',
+      name: 'bookFlight',
+      args: {},
+    });
+    store.pushEvent({
+      type: 'interrupt_resolved',
+      ts: 2,
+      turnId: 't1',
+      callId: 'c1',
+      decision: 'reject',
+      note: '   ',
+    });
+    expect(store.toolCalls()[0].interruptReason).toBeNull();
+  });
+
   it('turn_complete event flips phase to complete and stores the finishReason', () => {
     store.beginTurn('t1');
     store.pushEvent({

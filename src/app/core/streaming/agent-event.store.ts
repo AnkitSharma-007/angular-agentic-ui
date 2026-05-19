@@ -256,10 +256,11 @@ function applyInterruptResolution(
   },
 ): ToolCallState {
   if (event.decision === 'reject') {
+    const trimmed = event.note?.trim();
     return {
       ...state,
       status: 'rejected',
-      interruptReason: event.note ?? 'Cancelled by user.',
+      interruptReason: trimmed && trimmed.length > 0 ? trimmed : null,
       completedAt: Date.now(),
     };
   }
