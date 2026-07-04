@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 import {
   DecryptionFailedError,
   EncryptedPayloadV1,
@@ -24,7 +24,7 @@ const LOCAL_STORAGE_KEY = 'agentic-ui.api-key.encrypted';
 // BYOK key with two storage tiers: session (encrypted with a non-extractable
 // per-session KEK, no passphrase) or AES-GCM encrypted in localStorage (requires
 // a passphrase to unlock on subsequent loads).
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ApiKeyService {
   private readonly _key = signal<string | null>(null);
   private readonly _storage = signal<KeyStorage>('session');

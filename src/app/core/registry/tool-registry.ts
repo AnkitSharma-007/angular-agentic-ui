@@ -1,4 +1,4 @@
-import { Injectable, type Type, computed, signal } from '@angular/core';
+import { Service, type Type, computed, signal } from '@angular/core';
 import type {
   FunctionDeclaration,
   ToolDescriptor,
@@ -7,7 +7,7 @@ import type {
   ToolMeta,
 } from './tool-descriptor';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ToolRegistry {
   private readonly manifests = new Map<string, ToolManifest>();
   private readonly descriptors = new Map<string, ToolDescriptor>();

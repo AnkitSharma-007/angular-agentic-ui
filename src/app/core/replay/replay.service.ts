@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 import {
   idbClear,
   idbDelete,
@@ -14,7 +14,7 @@ const DB_NAME = 'agentic-ui-angular';
 const DB_VERSION = 1;
 const STORE_REPLAYS = 'replays';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ReplayService {
   private dbPromise: Promise<IDBDatabase> | null = null;
 

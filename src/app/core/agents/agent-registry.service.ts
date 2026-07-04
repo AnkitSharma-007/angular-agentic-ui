@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 import { BUILT_IN_AGENTS, DEFAULT_AGENT_ID } from './agent-definitions';
 import type { AgentDefinition } from './agent.types';
 
@@ -10,7 +10,7 @@ export interface AgentTransition {
   readonly ts: number;
 }
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AgentRegistry {
   private readonly _definitions = signal<readonly AgentDefinition[]>(BUILT_IN_AGENTS);
   private readonly _activeAgentId = signal<string>(DEFAULT_AGENT_ID);

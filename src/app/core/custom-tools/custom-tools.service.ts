@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Service, computed, inject, signal } from '@angular/core';
 import { idbDelete, idbGetAll, idbPut, openDb } from '../storage/indexeddb.helpers';
 import { ToolRegistry } from '../registry/tool-registry';
 import type { ToolManifest } from '../registry/tool-descriptor';
@@ -9,7 +9,7 @@ const DB_NAME = 'atlas-custom-tools';
 const DB_VERSION = 1;
 const STORE = 'tools';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class CustomToolsService {
   private readonly registry = inject(ToolRegistry);
 

@@ -1,3 +1,4 @@
+@let toolStatus = status();
 <mat-card
   class="propose-card"
   appearance="outlined"
@@ -9,12 +10,13 @@
     <div class="tool-header-row">
       <div class="tool-title-block">
         <span class="material-symbols-outlined tool-icon" aria-hidden="true">
-          @switch (status()) {
+          @switch (toolStatus) {
             @case ('pending_approval') { auto_awesome }
             @case ('running') { pending }
             @case ('complete') { extension }
             @case ('rejected') { do_not_disturb_on }
             @case ('error') { error }
+            @default never;
           }
         </span>
         <div class="tool-title-text">
@@ -23,7 +25,7 @@
         </div>
       </div>
 
-      @switch (status()) {
+      @switch (toolStatus) {
         @case ('pending_approval') {
           <span class="tool-status pending">awaiting approval</span>
         }
@@ -39,6 +41,7 @@
         @case ('error') {
           <span class="tool-status error">failed</span>
         }
+        @default never;
       }
     </div>
   </mat-card-header>

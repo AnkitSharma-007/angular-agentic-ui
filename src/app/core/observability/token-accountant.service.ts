@@ -1,10 +1,10 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 import { costUsd } from './pricing';
 import type { RoundMetrics, TurnUsage, TokenUsage } from './usage.types';
 import { EMPTY_TURN_USAGE, ZERO_USAGE, addUsage } from './usage.types';
 import type { GeminiUsageMetadata } from '../streaming/to-agent-event.operator';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class TokenAccountantService {
   private readonly _currentTurn = signal<TurnUsage>(EMPTY_TURN_USAGE);
   private readonly _lifetimeTotals = signal<TokenUsage>(ZERO_USAGE);

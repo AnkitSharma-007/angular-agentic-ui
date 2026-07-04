@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 
 export type InterruptDecision =
   | { readonly kind: 'approve'; readonly note?: string }
@@ -11,7 +11,7 @@ interface PendingHandle {
   readonly cleanup: () => void;
 }
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class InterruptService {
   private readonly pending = new Map<string, PendingHandle>();
   private readonly _pendingIds = signal<readonly string[]>([]);

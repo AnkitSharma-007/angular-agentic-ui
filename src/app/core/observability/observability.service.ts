@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Service, computed, inject, signal } from '@angular/core';
 import { AgentEventStore } from '../streaming/agent-event.store';
 import { TokenAccountantService } from './token-accountant.service';
 import type { RoundMetrics, TokenUsage } from './usage.types';
@@ -25,7 +25,7 @@ interface TimelineBounds {
   readonly durationMs: number;
 }
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ObservabilityService {
   private readonly accountant = inject(TokenAccountantService);
   private readonly store = inject(AgentEventStore);

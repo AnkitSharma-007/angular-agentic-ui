@@ -1,3 +1,4 @@
+@let toolStatus = status();
 <mat-card class="hotel-card" appearance="outlined">
   <mat-card-header>
     <div class="tool-header-row">
@@ -9,7 +10,7 @@
         </div>
       </div>
 
-      @switch (status()) {
+      @switch (toolStatus) {
         @case ('pending_approval') {
           <span class="tool-status pending">awaiting approval</span>
         }
@@ -25,6 +26,7 @@
         @case ('rejected') {
           <span class="tool-status rejected">cancelled</span>
         }
+        @default never;
       }
     </div>
   </mat-card-header>

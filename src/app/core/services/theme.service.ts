@@ -1,10 +1,10 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
+import { Service, computed, effect, signal } from '@angular/core';
 
 export type ThemePreference = 'light' | 'dark' | 'system';
 
 const STORAGE_KEY = 'agentic-ui.theme-preference';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ThemeService {
   private readonly _preference = signal<ThemePreference>(this.readInitial());
   private readonly _systemPrefersDark = signal<boolean>(this.readSystemPrefersDark());

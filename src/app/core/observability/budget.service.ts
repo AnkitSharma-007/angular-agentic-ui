@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 
 export interface BudgetConfig {
   readonly maxTokens: number | null;
@@ -25,7 +25,7 @@ const DEFAULT_CONFIG: BudgetConfig = {
   maxCostUsd: null,
 };
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class BudgetService {
   private readonly _config = signal<BudgetConfig>(loadStored());
 

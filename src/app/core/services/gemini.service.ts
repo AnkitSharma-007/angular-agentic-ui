@@ -1,4 +1,4 @@
-import { Injectable, computed, inject } from '@angular/core';
+import { Service, computed, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import type { GoogleGenAI, ThinkingLevel as SdkThinkingLevel } from '@google/genai';
 import { ApiKeyService } from './api-key.service';
@@ -61,7 +61,7 @@ class MissingApiKeyError extends Error {
   }
 }
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class GeminiService {
   private readonly apiKey = inject(ApiKeyService);
   private readonly store = inject(AgentEventStore);

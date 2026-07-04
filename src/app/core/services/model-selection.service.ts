@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Service, signal } from '@angular/core';
 
 // Names from https://ai.google.dev/gemini-api/docs/gemini-3.
 // Kept in its own service so the eagerly-loaded cost meter doesn't pull
@@ -17,7 +17,7 @@ export type GeminiModelId = (typeof GEMINI_MODELS)[number]['id'];
 
 export const DEFAULT_MODEL: GeminiModelId = 'gemini-3-flash-preview';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ModelSelectionService {
   private readonly _selectedModel = signal<GeminiModelId>(DEFAULT_MODEL);
   readonly selectedModel = this._selectedModel.asReadonly();

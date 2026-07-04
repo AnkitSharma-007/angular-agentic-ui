@@ -1,14 +1,16 @@
+@let toolStatus = status();
 <mat-card class="booking-card" appearance="outlined" [class.pending]="isPending()" [class.confirmed]="isComplete()" [class.rejected]="isRejected()">
   <mat-card-header>
     <div class="tool-header-row">
       <div class="tool-title-block">
         <span class="material-symbols-outlined tool-icon" aria-hidden="true">
-          @switch (status()) {
+          @switch (toolStatus) {
             @case ('pending_approval') { gavel }
             @case ('running') { pending }
             @case ('complete') { check_circle }
             @case ('rejected') { do_not_disturb_on }
             @case ('error') { error }
+            @default never;
           }
         </span>
         <div class="tool-title-text">
@@ -19,7 +21,7 @@
         </div>
       </div>
 
-      @switch (status()) {
+      @switch (toolStatus) {
         @case ('pending_approval') {
           <span class="tool-status pending">awaiting approval</span>
         }
@@ -35,6 +37,7 @@
         @case ('error') {
           <span class="tool-status error">failed</span>
         }
+        @default never;
       }
     </div>
   </mat-card-header>

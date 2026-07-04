@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Service, computed, signal } from '@angular/core';
 import type { AgentEvent } from './agent-event';
 import { appendChunkToContent, type HistoryContent } from './raw-history.reducer';
 import type { GeminiChunk, GeminiPart } from './to-agent-event.operator';
@@ -60,7 +60,7 @@ const EMPTY_TURN: CurrentTurn = {
 
 // Dual-view turn state: `events` (typed AgentEvents for the UI) plus
 // `rawHistory` (Gemini `Content[]` with thoughtSignature blobs preserved).
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AgentEventStore {
   private readonly _events = signal<readonly AgentEvent[]>([]);
   private readonly _rawHistory = signal<readonly HistoryContent[]>([]);

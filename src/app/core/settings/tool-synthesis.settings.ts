@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Service, signal } from '@angular/core';
 
 const STORAGE_KEY = 'atlas:tool-synthesis';
 
@@ -6,7 +6,7 @@ const STORAGE_KEY = 'atlas:tool-synthesis';
 // Defaults ON for demo builds — documented as opt-out — and persists to
 // localStorage, mirroring BudgetService. The agent loop reads `enabled()` to
 // decide whether to offer `proposeTool` to the model.
-@Injectable({ providedIn: 'root' })
+@Service()
 export class ToolSynthesisSettings {
   private readonly _enabled = signal<boolean>(loadStored());
 
