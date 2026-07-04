@@ -62,7 +62,15 @@
           @for (spec of specs(); track spec.id) {
             <li class="list-item" [class.active]="editingId() === spec.id">
               <button class="item-main" (click)="edit(spec)">
-                <code class="item-name">{{ spec.name }}</code>
+                <span class="item-name-row">
+                  <code class="item-name">{{ spec.name }}</code>
+                  @if (spec.origin === 'agent') {
+                    <span class="origin-chip origin-chip--agent" title="Proposed by the agent and approved by you">
+                      <mat-icon>auto_awesome</mat-icon>
+                      Agent
+                    </span>
+                  }
+                </span>
                 <span class="item-desc">{{ spec.description }}</span>
                 <span class="item-meta">
                   {{ spec.parameters.length }} param{{ spec.parameters.length === 1 ? '' : 's' }}

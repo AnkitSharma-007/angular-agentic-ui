@@ -22,9 +22,15 @@ import type { BudgetBreach, BudgetService } from '../observability/budget.servic
 import { ZERO_USAGE, type TokenUsage } from '../observability/usage.types';
 import type { AgentRegistry } from '../agents/agent-registry.service';
 import { HANDOFF_TOOL_NAME } from '../../shared/tools/handoff-tool/handoff-tool.manifest';
+import { PROPOSE_TOOL_NAME } from '../../shared/tools/propose-tool/propose-tool.manifest';
+import { TOOL_SYNTHESIS_CLAUSE } from '../agents/agent-definitions';
 import { normalizeUserTurnInput, type UserTurnInput } from '../media/attachment.types';
 
 export const MAX_AGENT_ROUNDS = 8;
+
+// Cap how many tools the agent may propose in a single turn. Prevents runaway
+// self-extension while still allowing a compose-a-couple-tools demo flow.
+export const MAX_TOOL_SYNTHESIS_PER_TURN = 2;
 
 export interface StreamRoundRequest {
   readonly model: string;
@@ -67,6 +73,9 @@ export interface AgentLoopDeps {
   // set so custom tools are visible regardless of which built-in agent is
   // active. Optional in tests; production wires CustomToolsService.
   readonly customToolNames?: () => ReadonlySet<string>;
+  // Whether the agent may propose brand-new tools (`proposeTool`). Optional in
+  // tests; production wires a persisted settings flag. Defaults to off.
+  readonly allowToolSynthesis?: () => boolean;
   readonly now?: () => number;
 }
 
@@ -88,6 +97,9 @@ export async function* runAgentTurn(
   beginTurn(turnId, normalizeUserTurnInput(input), deps);
   yield { type: 'turn_start', ts: now(), turnId };
 
+  const allowSynthesis = deps.allowToolSynthesis?.() ?? false;
+  let toolsProposed = 0;
+
   let state: StreamState = initialStreamState(turnId);
 
   for (let round = 0; round < MAX_AGENT_ROUNDS; round++) {
@@ -99,6 +111,8 @@ export async function* runAgentTurn(
       return;
     }
 
+    const includeSynthesis = allowSynthesis && toolsProposed < MAX_TOOL_SYNTHESIS_PER_TURN;
+
     const outcome: RoundOutcome = yield* streamRound(
       options.model,
       options.thinkingConfig,
@@ -107,6 +121,7 @@ export async function* runAgentTurn(
       signal,
       deps,
       now,
+      includeSynthesis,
     );
     state = outcome.state;
 
@@ -122,6 +137,7 @@ export async function* runAgentTurn(
     }
 
     yield* settleRoundToolCalls(outcome.toolCalls, turnId, signal, deps, now);
+    toolsProposed += outcome.toolCalls.filter((c) => c.name === PROPOSE_TOOL_NAME).length;
     yield* applyHandoffIfRequested(outcome.toolCalls, turnId, deps, now);
   }
 
@@ -142,6 +158,7 @@ async function* streamRound(
   signal: AbortSignal,
   deps: AgentLoopDeps,
   now: () => number,
+  includeSynthesis: boolean,
 ): AsyncGenerator<AgentEvent, RoundOutcome> {
   const activeAgent = deps.agents.activeAgent();
   const declarations = declarationsForAgent(
@@ -149,13 +166,18 @@ async function* streamRound(
     activeAgent.toolNames,
     activeAgent.handoffTargets.length > 0,
     deps.customToolNames?.() ?? EMPTY_NAME_SET,
+    includeSynthesis,
   );
+
+  const systemInstruction = includeSynthesis
+    ? `${activeAgent.systemPrompt} ${TOOL_SYNTHESIS_CLAUSE}`
+    : activeAgent.systemPrompt;
 
   const stream = await deps.streamChunks({
     model,
     contents: deps.store.rawHistory(),
     config: {
-      systemInstruction: activeAgent.systemPrompt,
+      systemInstruction,
       thinkingConfig,
       tools:
         declarations.length > 0
@@ -328,9 +350,11 @@ function declarationsForAgent(
   allowedNames: readonly string[],
   includeHandoff: boolean,
   customNames: ReadonlySet<string>,
+  includeSynthesis: boolean,
 ) {
   const allowed = new Set<string>(allowedNames);
   if (includeHandoff) allowed.add(HANDOFF_TOOL_NAME);
+  if (includeSynthesis) allowed.add(PROPOSE_TOOL_NAME);
   for (const name of customNames) allowed.add(name);
   return deps.registry.declarations().filter((d) => allowed.has(d.name));
 }

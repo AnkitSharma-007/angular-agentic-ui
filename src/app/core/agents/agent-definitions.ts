@@ -1,5 +1,18 @@
 import type { AgentDefinition } from './agent.types';
 
+// Appended to the active agent's system prompt (by the agent loop) only when
+// tool synthesis is enabled and the per-turn cap has not been hit. Kept out of
+// the static prompts so the guidance never mentions a capability the model
+// can't actually use in the current round.
+export const TOOL_SYNTHESIS_CLAUSE = [
+  "If no existing tool — built-in or user-defined — can fulfil the user's request,",
+  'do not fabricate an answer or pretend to have data. Instead call `proposeTool` to',
+  'draft a new tool (a name, one-line description, typed parameters, and a JSON',
+  'responseTemplate using {{param}} placeholders) and wait for the user to approve it.',
+  'Once approved the tool becomes callable on your next round — call it then to fulfil',
+  'the request. If the user rejects it, read their note and revise or choose another approach.',
+].join(' ');
+
 export const TRIP_PLANNER_AGENT: AgentDefinition = {
   id: 'tripPlanner',
   name: 'Trip Planner',

@@ -125,6 +125,39 @@
       <mat-card-content>
         <div class="card-head">
           <span class="card-head-icon">
+            <mat-icon>auto_awesome</mat-icon>
+          </span>
+          <div class="card-head-text">
+            <h3>Agent-authored tools</h3>
+            <p>Self-extension, always under your control.</p>
+          </div>
+        </div>
+        <ul class="check-list">
+          <li>
+            <mat-icon aria-hidden="true">check_circle</mat-icon>
+            When the agent proposes a new tool, it <strong>pauses for your
+            review</strong> — nothing is registered until you approve it. You can
+            edit or reject any proposal.
+          </li>
+          <li>
+            <mat-icon aria-hidden="true">check_circle</mat-icon>
+            Synthesized tools only return the JSON template you approve; they
+            <strong>never call real services</strong> or run arbitrary code.
+          </li>
+          <li>
+            <mat-icon aria-hidden="true">check_circle</mat-icon>
+            Approved tools are stored only in this browser's
+            <code>IndexedDB</code> and are labelled <em>Agent</em> in the Tools
+            library so their origin is always clear.
+          </li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="card">
+      <mat-card-content>
+        <div class="card-head">
+          <span class="card-head-icon">
             <mat-icon>troubleshoot</mat-icon>
           </span>
           <div class="card-head-text">

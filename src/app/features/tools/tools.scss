@@ -144,11 +144,41 @@
   gap: 0.25rem;
 }
 
+.item-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .item-name {
   font:
     600 0.875rem/1 'JetBrains Mono',
     monospace;
   color: var(--mat-sys-primary);
+}
+
+.origin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+  padding: 0.0625rem 0.4375rem 0.0625rem 0.25rem;
+  border-radius: 999px;
+  font: 600 0.625rem/1.4 'Inter', sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+
+  mat-icon {
+    font-size: 0.75rem;
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  &--agent {
+    color: var(--mat-sys-tertiary, #9560fa);
+    background: color-mix(in srgb, var(--mat-sys-tertiary, #9560fa) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--mat-sys-tertiary, #9560fa) 30%, transparent);
+  }
 }
 
 .item-desc {

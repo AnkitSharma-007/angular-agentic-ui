@@ -23,6 +23,7 @@ import { TokenAccountantService } from '../observability/token-accountant.servic
 import { BudgetService } from '../observability/budget.service';
 import { AgentRegistry } from '../agents/agent-registry.service';
 import { CustomToolsService } from '../custom-tools/custom-tools.service';
+import { ToolSynthesisSettings } from '../settings/tool-synthesis.settings';
 
 export { GEMINI_MODELS, DEFAULT_MODEL };
 export type { GeminiModelId };
@@ -71,6 +72,7 @@ export class GeminiService {
   private readonly modelSelection = inject(ModelSelectionService);
   private readonly agents = inject(AgentRegistry);
   private readonly customTools = inject(CustomToolsService);
+  private readonly toolSynthesis = inject(ToolSynthesisSettings);
 
   readonly selectedModel = this.modelSelection.selectedModel;
   readonly ready = computed(() => this.apiKey.hasKey());
@@ -178,6 +180,7 @@ export class GeminiService {
       budget: this.budget,
       agents: this.agents,
       customToolNames: () => this.customTools.customToolNames(),
+      allowToolSynthesis: () => this.toolSynthesis.enabled(),
     };
   }
 

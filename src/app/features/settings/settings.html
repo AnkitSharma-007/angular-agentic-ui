@@ -181,6 +181,36 @@
   <mat-card appearance="outlined" class="settings-card">
     <div class="card-head">
       <span class="card-head-icon">
+        <mat-icon>auto_awesome</mat-icon>
+      </span>
+      <div class="card-head-text">
+        <h2>Agent tool synthesis</h2>
+        <p>
+          Let the agent propose brand-new tools when no existing one fits. Every
+          proposal pauses for your review — you approve, edit, or reject before
+          it's registered. Nothing runs automatically.
+        </p>
+      </div>
+    </div>
+    <div class="card-body">
+      <mat-slide-toggle
+        [checked]="toolSynthesis.enabled()"
+        (change)="setToolSynthesis($event.checked)"
+      >
+        Enable agent tool synthesis
+      </mat-slide-toggle>
+      <p class="card-note">
+        Capped at {{ maxToolSynthesisPerTurn }} proposals per turn. Synthesized
+        tools only return the JSON template you approve — they never call real
+        services. Disable this to keep the agent to its built-in and hand-built
+        tools only.
+      </p>
+    </div>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="settings-card">
+    <div class="card-head">
+      <span class="card-head-icon">
         <mat-icon>contrast</mat-icon>
       </span>
       <div class="card-head-text">

@@ -8,6 +8,7 @@ import { hotelOptionsCardManifest } from '../../shared/tools/hotel-options-card/
 import { itineraryMapManifest } from '../../shared/tools/itinerary-map/itinerary-map.manifest';
 import { findActivitiesManifest } from '../../shared/tools/activity-list/find-activities.manifest';
 import { handoffToManifest } from '../../shared/tools/handoff-tool/handoff-tool.manifest';
+import { proposeToolManifest } from '../../shared/tools/propose-tool/propose-tool.manifest';
 
 const BUILT_IN_MANIFESTS = [
   bookingConfirmationCardManifest,
@@ -17,6 +18,7 @@ const BUILT_IN_MANIFESTS = [
   itineraryMapManifest,
   findActivitiesManifest,
   handoffToManifest,
+  proposeToolManifest,
 ];
 
 export function provideTools(): EnvironmentProviders {

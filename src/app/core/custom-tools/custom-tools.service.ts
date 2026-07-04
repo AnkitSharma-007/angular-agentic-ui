@@ -55,6 +55,33 @@ export class CustomToolsService {
     this.registry.upsert(this.buildManifest(spec));
   }
 
+  // Turn an id-less draft (e.g. one the agent proposed) into a full spec by
+  // stamping a fresh id and timestamps.
+  finalizeDraft(draft: Omit<CustomToolSpec, 'id' | 'createdAt' | 'updatedAt'>): CustomToolSpec {
+    const now = Date.now();
+    return { ...draft, id: randomId(), createdAt: now, updatedAt: now };
+  }
+
+  // Register a tool for this session only — hot-registers into the registry and
+  // updates `specs`/`customToolNames`, but skips IndexedDB. Used as a graceful
+  // fallback when persistence is unavailable so agent tool synthesis still works
+  // in the demo.
+  registerEphemeral(spec: CustomToolSpec): void {
+    this._specs.update((list) =>
+      [spec, ...list.filter((s) => s.id !== spec.id)].sort(byCreatedDesc),
+    );
+    this.registry.upsert(this.buildManifest(spec));
+  }
+
+  // Register a spec into the tool registry only — no `specs` signal update, no
+  // IndexedDB. Used when rehydrating a saved replay so an embedded synthesized
+  // tool's card can resolve its descriptor, without polluting the user's tool
+  // library. Skips names already registered so a live tool always wins.
+  ensureRegisteredForReplay(spec: CustomToolSpec): void {
+    if (this.registry.get(spec.name)) return;
+    this.registry.upsert(this.buildManifest(spec));
+  }
+
   async delete(id: string): Promise<void> {
     const existing = this._specs().find((s) => s.id === id);
     if (!existing) return;
@@ -107,4 +134,11 @@ export class CustomToolsService {
 
 function byCreatedDesc(a: CustomToolSpec, b: CustomToolSpec): number {
   return b.createdAt - a.createdAt;
+}
+
+function randomId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `tool_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }

@@ -1,5 +1,6 @@
 import type { AgentEvent } from '../streaming/agent-event';
 import type { HistoryContent } from '../streaming/raw-history.reducer';
+import type { CustomToolSpec } from '../custom-tools/custom-tool.types';
 
 export interface ReplayPayload {
   readonly schemaVersion: 1;
@@ -10,6 +11,10 @@ export interface ReplayPayload {
   readonly model: string;
   readonly events: readonly AgentEvent[];
   readonly rawHistory: readonly HistoryContent[];
+  // Specs for any custom tools this run invoked (agent-synthesized or
+  // hand-built). Embedded so the replay renders its tool cards even after the
+  // tool is deleted or on another device. Optional: older payloads omit it.
+  readonly customToolSpecs?: readonly CustomToolSpec[];
   readonly durationMs: number;
   readonly eventCount: number;
   readonly stats: {

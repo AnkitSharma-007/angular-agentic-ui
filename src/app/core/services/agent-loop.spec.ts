@@ -1,6 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { runAgentTurn, type AgentLoopDeps, type StreamRoundRequest } from './agent-loop';
+import {
+  runAgentTurn,
+  MAX_TOOL_SYNTHESIS_PER_TURN,
+  type AgentLoopDeps,
+  type StreamRoundRequest,
+} from './agent-loop';
+import { PROPOSE_TOOL_NAME } from '../../shared/tools/propose-tool/propose-tool.manifest';
+import { TOOL_SYNTHESIS_CLAUSE } from '../agents/agent-definitions';
 import type { AgentEvent } from '../streaming/agent-event';
 import { AgentEventStore } from '../streaming/agent-event.store';
 import type { GeminiChunk } from '../streaming/to-agent-event.operator';
@@ -132,6 +139,7 @@ function makeHarness(opts: {
   readonly responses: readonly (readonly GeminiChunk[])[];
   readonly tools?: readonly ToolDef[];
   readonly customToolNames?: readonly string[];
+  readonly allowToolSynthesis?: boolean;
   readonly now?: () => number;
 }): Harness {
   TestBed.resetTestingModule();
@@ -161,6 +169,7 @@ function makeHarness(opts: {
     budget,
     agents,
     customToolNames: () => customNames,
+    allowToolSynthesis: () => opts.allowToolSynthesis ?? false,
     now: opts.now,
   };
 
@@ -772,5 +781,96 @@ describe('runAgentTurn — agent-aware declarations', () => {
     const names = passed.map((d) => d.name);
     expect(names).toContain('searchFlights');
     expect(names).toContain('searchWeather');
+  });
+});
+
+describe('runAgentTurn — tool synthesis gating', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  function proposeTool(): ToolDef {
+    return {
+      meta: {
+        name: PROPOSE_TOOL_NAME,
+        description: 'propose a new tool',
+        declaration: decl(PROPOSE_TOOL_NAME),
+        interruptive: false,
+      },
+      execute: () => ({ status: 'registered' }),
+    };
+  }
+
+  function declaredNames(h: Harness, callIndex: number): readonly string[] {
+    const req = h.streamChunks.mock.calls[callIndex][0] as StreamRoundRequest;
+    const passed = req.config.tools?.[0].functionDeclarations as
+      | readonly { name: string }[]
+      | undefined;
+    return (passed ?? []).map((d) => d.name);
+  }
+
+  it('does not offer proposeTool when synthesis is disabled', async () => {
+    const h = makeHarness({
+      tools: [proposeTool()],
+      allowToolSynthesis: false,
+      responses: [[textChunk('hi'), finishChunk('STOP')]],
+    });
+
+    await drain(runAgentTurn('Hi', 't1', NOOP_OPTIONS, new AbortController().signal, h.deps));
+
+    expect(declaredNames(h, 0)).not.toContain(PROPOSE_TOOL_NAME);
+  });
+
+  it('offers proposeTool when synthesis is enabled', async () => {
+    const h = makeHarness({
+      tools: [proposeTool()],
+      allowToolSynthesis: true,
+      responses: [[textChunk('hi'), finishChunk('STOP')]],
+    });
+
+    await drain(runAgentTurn('Hi', 't1', NOOP_OPTIONS, new AbortController().signal, h.deps));
+
+    expect(declaredNames(h, 0)).toContain(PROPOSE_TOOL_NAME);
+  });
+
+  it('appends the synthesis clause to the system prompt only when enabled', async () => {
+    const on = makeHarness({
+      tools: [proposeTool()],
+      allowToolSynthesis: true,
+      responses: [[textChunk('hi'), finishChunk('STOP')]],
+    });
+    await drain(runAgentTurn('Hi', 't1', NOOP_OPTIONS, new AbortController().signal, on.deps));
+    const onReq = on.streamChunks.mock.calls[0][0] as StreamRoundRequest;
+    expect(onReq.config.systemInstruction).toContain(TOOL_SYNTHESIS_CLAUSE);
+
+    const off = makeHarness({
+      tools: [proposeTool()],
+      allowToolSynthesis: false,
+      responses: [[textChunk('hi'), finishChunk('STOP')]],
+    });
+    await drain(runAgentTurn('Hi', 't2', NOOP_OPTIONS, new AbortController().signal, off.deps));
+    const offReq = off.streamChunks.mock.calls[0][0] as StreamRoundRequest;
+    expect(offReq.config.systemInstruction).not.toContain(TOOL_SYNTHESIS_CLAUSE);
+  });
+
+  it('stops offering proposeTool once the per-turn cap is reached', async () => {
+    // One proposal per round until the cap; a final text-only round ends the turn.
+    const proposalRound = () => [toolChunk(PROPOSE_TOOL_NAME, { name: 'x' }), finishChunk('STOP')];
+    const responses = [
+      ...Array.from({ length: MAX_TOOL_SYNTHESIS_PER_TURN }, proposalRound),
+      [textChunk('done'), finishChunk('STOP')],
+    ];
+    const h = makeHarness({
+      tools: [proposeTool()],
+      allowToolSynthesis: true,
+      responses,
+    });
+
+    await drain(runAgentTurn('Make tools', 't1', NOOP_OPTIONS, new AbortController().signal, h.deps));
+
+    // Every round up to the cap offers proposeTool…
+    for (let round = 0; round < MAX_TOOL_SYNTHESIS_PER_TURN; round++) {
+      expect(declaredNames(h, round)).toContain(PROPOSE_TOOL_NAME);
+    }
+    // …but the round after the cap no longer does.
+    expect(declaredNames(h, MAX_TOOL_SYNTHESIS_PER_TURN)).not.toContain(PROPOSE_TOOL_NAME);
   });
 });

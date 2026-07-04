@@ -1,0 +1,265 @@
+<mat-card
+  class="propose-card"
+  appearance="outlined"
+  [class.pending]="isPending()"
+  [class.registered]="isComplete()"
+  [class.rejected]="isRejected()"
+>
+  <mat-card-header>
+    <div class="tool-header-row">
+      <div class="tool-title-block">
+        <span class="material-symbols-outlined tool-icon" aria-hidden="true">
+          @switch (status()) {
+            @case ('pending_approval') { auto_awesome }
+            @case ('running') { pending }
+            @case ('complete') { extension }
+            @case ('rejected') { do_not_disturb_on }
+            @case ('error') { error }
+          }
+        </span>
+        <div class="tool-title-text">
+          <span class="tool-name">New tool proposed</span>
+          <span class="tool-sub"><code>{{ draftName() || args().name }}</code></span>
+        </div>
+      </div>
+
+      @switch (status()) {
+        @case ('pending_approval') {
+          <span class="tool-status pending">awaiting approval</span>
+        }
+        @case ('running') {
+          <span class="tool-status running">registering…</span>
+        }
+        @case ('complete') {
+          <span class="tool-status complete">registered</span>
+        }
+        @case ('rejected') {
+          <span class="tool-status rejected">declined</span>
+        }
+        @case ('error') {
+          <span class="tool-status error">failed</span>
+        }
+      }
+    </div>
+  </mat-card-header>
+
+  @if (isPending()) {
+    <mat-card-content>
+      @if (interruptReason()) {
+        <p class="reason">{{ interruptReason() }}</p>
+      }
+
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Tool name</mat-label>
+        <input
+          matInput
+          [ngModel]="draftName()"
+          (ngModelChange)="draftName.set($event)"
+          placeholder="searchWeather"
+        />
+        @if (nameError(); as err) {
+          <mat-error>{{ err }}</mat-error>
+        }
+        <mat-hint>Used as the function name the agent calls.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Description</mat-label>
+        <textarea
+          matInput
+          rows="2"
+          [ngModel]="draftDescription()"
+          (ngModelChange)="draftDescription.set($event)"
+        ></textarea>
+        @if (descriptionError(); as err) {
+          <mat-error>{{ err }}</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="params-section">
+        <header class="section-head">
+          <span class="section-label">Parameters</span>
+          <button mat-stroked-button type="button" (click)="addParam()">
+            <mat-icon>add</mat-icon>
+            <span>Add</span>
+          </button>
+        </header>
+
+        @if (draftParams().length === 0) {
+          <p class="params-empty">No parameters — the agent can call this tool with no args.</p>
+        } @else {
+          <ul class="params">
+            @for (param of draftParams(); track $index; let i = $index) {
+              <li class="param">
+                <mat-form-field appearance="outline" class="param-name">
+                  <mat-label>Name</mat-label>
+                  <input
+                    matInput
+                    [ngModel]="param.name"
+                    (ngModelChange)="updateParamName(i, $event)"
+                    placeholder="city"
+                  />
+                  @if (paramErrors()[i]; as err) {
+                    <mat-error>{{ err }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="param-type">
+                  <mat-label>Type</mat-label>
+                  <mat-select
+                    [ngModel]="param.type"
+                    (ngModelChange)="updateParamType(i, $event)"
+                  >
+                    @for (opt of typeOptions; track opt.value) {
+                      <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="param-desc">
+                  <mat-label>Description</mat-label>
+                  <input
+                    matInput
+                    [ngModel]="param.description"
+                    (ngModelChange)="updateParamDescription(i, $event)"
+                    placeholder="City name, e.g. Goa"
+                  />
+                </mat-form-field>
+
+                <div class="param-controls">
+                  <mat-checkbox
+                    [ngModel]="param.required"
+                    (ngModelChange)="updateParamRequired(i, $event)"
+                  >
+                    Required
+                  </mat-checkbox>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Remove parameter"
+                    (click)="removeParam(i)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <div class="template-section">
+        <header class="section-head">
+          <span class="section-label">Response template</span>
+          <span class="section-hint">JSON · {{ '{{paramName}}' }} placeholders</span>
+        </header>
+        <mat-form-field appearance="outline" class="full mono-field">
+          <mat-label>Template</mat-label>
+          <textarea
+            matInput
+            rows="6"
+            [ngModel]="draftTemplate()"
+            (ngModelChange)="draftTemplate.set($event)"
+          ></textarea>
+        </mat-form-field>
+
+        <div class="preview" [class.error]="!templatePreview().ok">
+          <header class="preview-head">
+            <span class="preview-label">Live preview</span>
+            <span class="preview-meta">
+              @if (templatePreview().ok) {
+                <mat-icon aria-hidden="true">check_circle</mat-icon> Valid JSON
+              } @else {
+                <mat-icon aria-hidden="true">error</mat-icon> Invalid JSON
+              }
+            </span>
+          </header>
+          <pre>{{ templatePreview().text }}</pre>
+        </div>
+      </div>
+
+      @if (showRejectNote()) {
+        <mat-form-field appearance="outline" class="full reject-note">
+          <mat-label>Why are you rejecting? (optional)</mat-label>
+          <textarea
+            matInput
+            rows="2"
+            [ngModel]="rejectionNote()"
+            (ngModelChange)="rejectionNote.set($event)"
+            placeholder="The agent will see this and revise its proposal."
+          ></textarea>
+        </mat-form-field>
+      }
+    </mat-card-content>
+
+    <mat-card-actions align="end" class="actions">
+      @if (showRejectNote()) {
+        <button mat-stroked-button type="button" (click)="toggleRejectNote()">
+          <mat-icon>arrow_back</mat-icon>
+          Back
+        </button>
+        <button mat-flat-button color="warn" type="button" (click)="confirmReject()">
+          <mat-icon>close</mat-icon>
+          Reject with note
+        </button>
+      } @else {
+        <button mat-stroked-button color="warn" type="button" (click)="toggleRejectNote()">
+          <mat-icon>close</mat-icon>
+          Reject
+        </button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          [disabled]="!canApprove()"
+          (click)="approve()"
+        >
+          <mat-icon>check</mat-icon>
+          Approve &amp; register
+        </button>
+      }
+    </mat-card-actions>
+  }
+
+  @if (isRunning()) {
+    <mat-card-content>
+      <p class="working-line">Registering <code>{{ draftName() }}</code>…</p>
+    </mat-card-content>
+  }
+
+  @if (isComplete() && result()?.selected; as selected) {
+    <mat-card-content>
+      <p class="registered-line">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        <span>
+          <code>{{ selected.name }}</code> is now registered and callable — the agent can use it
+          on its next round.
+        </span>
+      </p>
+      @if (selected.description) {
+        <p class="registered-desc">{{ selected.description }}</p>
+      }
+    </mat-card-content>
+  }
+
+  @if (isRejected()) {
+    <mat-card-content>
+      <p class="rejected-line">
+        You declined this tool. The agent saw the rejection
+        @if (interruptReason()) {
+          and the note <em>"{{ interruptReason() }}"</em>,
+        }
+        and will revise in its next round.
+      </p>
+    </mat-card-content>
+  }
+
+  @if (isError()) {
+    <mat-card-content>
+      <div class="tool-error-banner">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        <span>{{ errorMessage() ?? 'Could not register the tool.' }}</span>
+      </div>
+    </mat-card-content>
+  }
+</mat-card>

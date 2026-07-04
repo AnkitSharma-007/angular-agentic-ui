@@ -14,11 +14,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { ApiKeyService } from '../../core/services/api-key.service';
 import { GeminiService, GEMINI_MODELS, GeminiModelId } from '../../core/services/gemini.service';
+import { MAX_TOOL_SYNTHESIS_PER_TURN } from '../../core/services/agent-loop';
 import { ThemeService, type ThemePreference } from '../../core/services/theme.service';
 import { BudgetService } from '../../core/observability/budget.service';
+import { ToolSynthesisSettings } from '../../core/settings/tool-synthesis.settings';
 import { PageHeaderComponent } from '../../shared/page-header/page-header';
 
 interface ThemeOption {
@@ -44,6 +47,7 @@ const THEME_OPTIONS: readonly ThemeOption[] = [
     MatInputModule,
     MatIconModule,
     MatDividerModule,
+    MatSlideToggleModule,
     PageHeaderComponent,
   ],
   templateUrl: './settings.html',
@@ -55,6 +59,8 @@ export class SettingsComponent {
   protected readonly gemini = inject(GeminiService);
   protected readonly theme = inject(ThemeService);
   protected readonly budget = inject(BudgetService);
+  protected readonly toolSynthesis = inject(ToolSynthesisSettings);
+  protected readonly maxToolSynthesisPerTurn = MAX_TOOL_SYNTHESIS_PER_TURN;
   protected readonly models = GEMINI_MODELS;
   protected readonly themeOptions = THEME_OPTIONS;
 
@@ -83,6 +89,10 @@ export class SettingsComponent {
 
   protected selectModel(id: GeminiModelId): void {
     this.gemini.selectModel(id);
+  }
+
+  protected setToolSynthesis(enabled: boolean): void {
+    this.toolSynthesis.setEnabled(enabled);
   }
 
   protected clearKey(): void {

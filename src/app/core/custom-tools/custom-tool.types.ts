@@ -1,11 +1,22 @@
+// Who authored a custom tool. `agent` = proposed by the model via `proposeTool`
+// and approved by the user; `user` = hand-built in the tool builder.
+export type CustomToolOrigin = 'user' | 'agent';
+
 export interface CustomToolSpec {
   readonly id: string;
   readonly name: string;
   readonly description: string;
   readonly parameters: readonly CustomToolParameter[];
   readonly responseTemplate: string;
+  // Provenance. Optional so specs persisted before this field existed still
+  // load; read it through `toolOrigin()` which defaults absent values to 'user'.
+  readonly origin?: CustomToolOrigin;
   readonly createdAt: number;
   readonly updatedAt: number;
+}
+
+export function toolOrigin(spec: Pick<CustomToolSpec, 'origin'>): CustomToolOrigin {
+  return spec.origin ?? 'user';
 }
 
 export interface CustomToolParameter {

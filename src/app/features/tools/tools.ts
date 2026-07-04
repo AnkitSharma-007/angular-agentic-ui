@@ -240,6 +240,9 @@ export class ToolsComponent {
           required: p.required,
         })) as readonly CustomToolParameter[],
         responseTemplate: this.responseTemplate(),
+        // Preserve provenance when editing (an agent-authored tool stays labelled
+        // as such); brand-new tools built here are user-authored.
+        origin: this.editingId() ? this.customTools.getById(id)?.origin ?? 'user' : 'user',
         createdAt: this.editingId()
           ? this.customTools.getById(id)?.createdAt ?? now
           : now,

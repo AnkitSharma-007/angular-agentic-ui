@@ -26,6 +26,8 @@ import { humanizeGeminiError } from '../../core/errors';
 import { AgentEventStore, type ToolCallState } from '../../core/streaming/agent-event.store';
 import { ToolRegistry } from '../../core/registry/tool-registry';
 import { ReplayService } from '../../core/replay/replay.service';
+import { CustomToolsService } from '../../core/custom-tools/custom-tools.service';
+import type { CustomToolSpec } from '../../core/custom-tools/custom-tool.types';
 import { TokenAccountantService } from '../../core/observability/token-accountant.service';
 import { AgentRegistry } from '../../core/agents/agent-registry.service';
 import { play, type ReplaySpeed } from '../../core/replay/replay-player';
@@ -84,6 +86,7 @@ export class HomeComponent implements OnInit {
   protected readonly store = inject(AgentEventStore);
   protected readonly registry = inject(ToolRegistry);
   protected readonly replays = inject(ReplayService);
+  private readonly customTools = inject(CustomToolsService);
   private readonly tokenAccountant = inject(TokenAccountantService);
   private readonly agents = inject(AgentRegistry);
   private readonly router = inject(Router);
@@ -441,6 +444,10 @@ export class HomeComponent implements OnInit {
       const firstTs = events.at(0)?.ts ?? Date.now();
       const lastTs = events.at(-1)?.ts ?? firstTs;
 
+      // Embed the specs of any custom tools this turn called, so the replay
+      // renders their cards even after the tool is deleted or on another device.
+      const customToolSpecs = this.collectCustomToolSpecs(events);
+
       await this.replays.save({
         schemaVersion: 1,
         id: newReplayId(),
@@ -450,6 +457,7 @@ export class HomeComponent implements OnInit {
         model: this.gemini.selectedModel(),
         events,
         rawHistory,
+        ...(customToolSpecs.length > 0 ? { customToolSpecs } : {}),
         durationMs: Math.max(0, lastTs - firstTs),
         eventCount: events.length,
         stats: this.stats(),
@@ -458,6 +466,20 @@ export class HomeComponent implements OnInit {
     } catch {
       this.saveStatus.set('error');
     }
+  }
+
+  // Map the tool_call events of a turn to the specs of any custom tools they
+  // invoked. Names not owned by CustomToolsService (built-ins) are skipped.
+  private collectCustomToolSpecs(
+    events: readonly AgentEvent[],
+  ): readonly CustomToolSpec[] {
+    const owned = this.customTools.customToolNames();
+    const wanted = new Set<string>();
+    for (const event of events) {
+      if (event.type === 'tool_call' && owned.has(event.name)) wanted.add(event.name);
+    }
+    if (wanted.size === 0) return [];
+    return this.customTools.specs().filter((s) => wanted.has(s.name));
   }
 
   protected async restart(): Promise<void> {
@@ -481,6 +503,12 @@ export class HomeComponent implements OnInit {
       this.lastPrompt.set(payload.prompt);
       this.saveStatus.set('idle');
       this.activeReplayId.set(id);
+
+      // Re-register any embedded custom-tool specs into the registry so their
+      // cards can resolve. Done before preloading descriptors below.
+      for (const spec of payload.customToolSpecs ?? []) {
+        this.customTools.ensureRegisteredForReplay(spec);
+      }
 
       // Replay never calls `registry.execute()`, so lazy tool descriptors
       // must be pre-warmed or the cards stick on "Loading module…".

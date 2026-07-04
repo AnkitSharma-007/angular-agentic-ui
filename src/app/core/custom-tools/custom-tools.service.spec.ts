@@ -117,6 +117,68 @@ describe('CustomToolsService', () => {
     expect(service.isNameInUse('')).toBe(false);
   });
 
+  it('finalizeDraft() stamps a unique id and timestamps onto an id-less draft', () => {
+    const draft = {
+      name: 'weather',
+      description: 'Get weather.',
+      parameters: [{ name: 'city', type: 'string' as const, description: 'City', required: true }],
+      responseTemplate: '{"ok": true}',
+    };
+    const a = service.finalizeDraft(draft);
+    const b = service.finalizeDraft(draft);
+
+    expect(a.name).toBe('weather');
+    expect(a.id).toBeTruthy();
+    expect(a.createdAt).toBeTypeOf('number');
+    expect(a.updatedAt).toBe(a.createdAt);
+    expect(a.id).not.toBe(b.id);
+  });
+
+  it('registerEphemeral() hot-registers into the registry without touching IndexedDB', () => {
+    const spec = makeSpec({ id: 'eph', name: 'ephemeralTool' });
+    service.registerEphemeral(spec);
+
+    expect(service.count()).toBe(1);
+    expect(service.specs()[0]).toEqual(spec);
+    expect(registry.get('ephemeralTool')).toBeDefined();
+    expect(service.customToolNames().has('ephemeralTool')).toBe(true);
+  });
+
+  it('ensureRegisteredForReplay() upserts into the registry only, leaving the library untouched', () => {
+    const spec = makeSpec({ id: 'r1', name: 'replayTool' });
+    service.ensureRegisteredForReplay(spec);
+
+    // Registry can now resolve the tool so a replayed card renders…
+    expect(registry.get('replayTool')).toBeDefined();
+    // …but it never entered the user's saved tool library.
+    expect(service.count()).toBe(0);
+    expect(service.customToolNames().has('replayTool')).toBe(false);
+  });
+
+  it('ensureRegisteredForReplay() does not clobber an already-registered tool', async () => {
+    await service.save(makeSpec({ id: 'live', name: 'shared', description: 'live version' }));
+    const before = registry.get('shared');
+
+    service.ensureRegisteredForReplay(
+      makeSpec({ id: 'embedded', name: 'shared', description: 'stale replay version' }),
+    );
+
+    // The live manifest is preserved (same reference), replay copy is ignored.
+    expect(registry.get('shared')).toBe(before);
+    expect(service.count()).toBe(1);
+  });
+
+  it('finalizeDraft() carries an origin through onto the finalized spec', () => {
+    const spec = service.finalizeDraft({
+      name: 'weather',
+      description: 'Get weather.',
+      parameters: [],
+      responseTemplate: '{"ok": true}',
+      origin: 'agent',
+    });
+    expect(spec.origin).toBe('agent');
+  });
+
   it('isNameInUse() flags collisions with non-owned tools in the registry', async () => {
     registry.register({
       name: 'searchFlights',
