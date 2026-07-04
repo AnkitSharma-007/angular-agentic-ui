@@ -6,17 +6,25 @@ import { OnboardingComponent } from './onboarding';
 import { GeminiService } from '../../core/services/gemini.service';
 import { ApiKeyService } from '../../core/services/api-key.service';
 
+interface OnboardingForm {
+  key: string;
+  remember: boolean;
+  passphrase: string;
+  passphraseConfirm: string;
+}
+
 interface OnboardingInternals {
-  readonly candidateKey: { set: (v: string) => void };
-  readonly remember: { set: (v: boolean) => void };
-  readonly passphrase: { set: (v: string) => void };
-  readonly passphraseConfirm: { set: (v: string) => void };
+  readonly model: { update: (fn: (m: OnboardingForm) => OnboardingForm) => void };
   readonly canTest: () => boolean;
   readonly canSave: () => boolean;
   test(): Promise<void>;
   save(): Promise<void>;
   statusKind: string;
   errorMessage: string | null;
+}
+
+function patch(inst: OnboardingInternals, next: Partial<OnboardingForm>): void {
+  inst.model.update((m) => ({ ...m, ...next }));
 }
 
 describe('OnboardingComponent', () => {
@@ -45,7 +53,7 @@ describe('OnboardingComponent', () => {
     await fixture.whenStable();
     const inst = fixture.componentInstance as unknown as OnboardingInternals;
     expect(inst.canTest()).toBe(false);
-    inst.candidateKey.set('sk-1234');
+    patch(inst, { key: 'sk-1234' });
     expect(inst.canTest()).toBe(true);
   });
 
@@ -54,21 +62,19 @@ describe('OnboardingComponent', () => {
     await fixture.whenStable();
     const inst = fixture.componentInstance as unknown as OnboardingInternals;
 
-    inst.candidateKey.set('sk-1234');
+    patch(inst, { key: 'sk-1234' });
     expect(inst.canSave()).toBe(true);
 
-    inst.remember.set(true);
+    patch(inst, { remember: true });
     expect(inst.canSave()).toBe(false);
 
-    inst.passphrase.set('short');
-    inst.passphraseConfirm.set('short');
+    patch(inst, { passphrase: 'short', passphraseConfirm: 'short' });
     expect(inst.canSave()).toBe(false);
 
-    inst.passphrase.set('longenough');
-    inst.passphraseConfirm.set('different');
+    patch(inst, { passphrase: 'longenough', passphraseConfirm: 'different' });
     expect(inst.canSave()).toBe(false);
 
-    inst.passphraseConfirm.set('longenough');
+    patch(inst, { passphraseConfirm: 'longenough' });
     expect(inst.canSave()).toBe(true);
   });
 
@@ -80,7 +86,7 @@ describe('OnboardingComponent', () => {
     await fixture.whenStable();
     const inst = fixture.componentInstance as unknown as OnboardingInternals;
 
-    inst.candidateKey.set('sk-1234');
+    patch(inst, { key: 'sk-1234' });
     await inst.test();
     expect(inst.statusKind).toBe('tested-ok');
   });
@@ -93,7 +99,7 @@ describe('OnboardingComponent', () => {
     await fixture.whenStable();
     const inst = fixture.componentInstance as unknown as OnboardingInternals;
 
-    inst.candidateKey.set('sk-1234');
+    patch(inst, { key: 'sk-1234' });
     await inst.test();
     expect(inst.statusKind).toBe('error');
     expect(inst.errorMessage).toMatch(/Authentication failed/);
@@ -106,7 +112,7 @@ describe('OnboardingComponent', () => {
     await fixture.whenStable();
     const inst = fixture.componentInstance as unknown as OnboardingInternals;
 
-    inst.candidateKey.set('sk-1234');
+    patch(inst, { key: 'sk-1234' });
     await inst.save();
 
     expect(apiKey.key()).toBe('sk-1234');

@@ -6,7 +6,7 @@ import {
   computed,
   output,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { form, required, minLength, FormField } from '@angular/forms/signals';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,10 +30,17 @@ type Status =
   | { kind: 'unlocking' }
   | { kind: 'error'; message: string };
 
+interface OnboardingForm {
+  key: string;
+  remember: boolean;
+  passphrase: string;
+  passphraseConfirm: string;
+}
+
 @Component({
   selector: 'app-onboarding',
   imports: [
-    FormsModule,
+    FormField,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -54,10 +61,28 @@ export class OnboardingComponent {
 
   readonly ready = output<void>();
 
-  protected readonly candidateKey = signal('');
-  protected readonly remember = signal(false);
-  protected readonly passphrase = signal('');
-  protected readonly passphraseConfirm = signal('');
+  // Signal Forms model — the single source of truth the schema validates and the
+  // template binds to via `[formField]`.
+  protected readonly model = signal<OnboardingForm>({
+    key: '',
+    remember: false,
+    passphrase: '',
+    passphraseConfirm: '',
+  });
+
+  // Passphrase validators only apply when the user opts into persistent storage.
+  protected readonly f = form(this.model, (p) => {
+    required(p.key, { message: 'Paste your Gemini API key.' });
+    required(p.passphrase, {
+      message: 'Choose a passphrase (at least 6 characters).',
+      when: () => this.model().remember,
+    });
+    minLength(p.passphrase, 6, {
+      message: 'Use at least 6 characters.',
+      when: () => this.model().remember,
+    });
+  });
+
   protected readonly status = signal<Status>({ kind: 'idle' });
   protected readonly showPassphrase = signal(false);
 
@@ -65,27 +90,34 @@ export class OnboardingComponent {
     this.apiKey.hasLockedBlob() ? 'unlock' : 'setup',
   );
 
+  // Cross-field check kept as a computed (rather than a schema validator) so it can
+  // drive both the inline error and the save gate without a targeted-error dance.
+  protected readonly passphraseMismatch = computed(() => {
+    const m = this.model();
+    return (
+      m.remember &&
+      m.passphrase.length > 0 &&
+      m.passphraseConfirm.length > 0 &&
+      m.passphrase !== m.passphraseConfirm
+    );
+  });
+
   protected readonly canTest = computed(() => {
     const s = this.status();
-    return this.candidateKey().trim().length > 0 && s.kind !== 'testing' && s.kind !== 'saving';
+    return this.model().key.trim().length > 0 && s.kind !== 'testing' && s.kind !== 'saving';
   });
 
   protected readonly canSave = computed(() => {
     const s = this.status();
     if (s.kind === 'saving' || s.kind === 'testing' || s.kind === 'unlocking') return false;
-    if (!this.candidateKey().trim()) return false;
-    if (this.remember()) {
-      const p = this.passphrase();
-      const pc = this.passphraseConfirm();
-      if (p.length < 6) return false;
-      if (p !== pc) return false;
-    }
+    if (this.f().invalid()) return false;
+    if (this.passphraseMismatch()) return false;
     return true;
   });
 
   protected readonly canUnlock = computed(() => {
     const s = this.status();
-    return this.passphrase().length > 0 && s.kind !== 'unlocking';
+    return this.model().passphrase.length > 0 && s.kind !== 'unlocking';
   });
 
   protected get statusKind(): Status['kind'] {
@@ -98,7 +130,7 @@ export class OnboardingComponent {
   }
 
   protected async test(): Promise<void> {
-    const key = this.candidateKey().trim();
+    const key = this.model().key.trim();
     if (!key) return;
     this.status.set({ kind: 'testing' });
     try {
@@ -110,12 +142,13 @@ export class OnboardingComponent {
   }
 
   protected async save(): Promise<void> {
-    const key = this.candidateKey().trim();
+    const { key: rawKey, remember, passphrase } = this.model();
+    const key = rawKey.trim();
     if (!key) return;
     this.status.set({ kind: 'saving' });
     try {
-      if (this.remember()) {
-        await this.apiKey.setEncryptedLocal(key, this.passphrase());
+      if (remember) {
+        await this.apiKey.setEncryptedLocal(key, passphrase);
       } else {
         await this.apiKey.setForSession(key);
       }
@@ -129,7 +162,7 @@ export class OnboardingComponent {
   protected async unlock(): Promise<void> {
     this.status.set({ kind: 'unlocking' });
     try {
-      await this.apiKey.unlockLocal(this.passphrase());
+      await this.apiKey.unlockLocal(this.model().passphrase);
       this.status.set({ kind: 'idle' });
       this.ready.emit();
     } catch (err) {
@@ -147,7 +180,7 @@ export class OnboardingComponent {
     );
     if (confirmed) {
       void this.apiKey.clear();
-      this.passphrase.set('');
+      this.model.update((m) => ({ ...m, passphrase: '' }));
       this.status.set({ kind: 'idle' });
     }
   }

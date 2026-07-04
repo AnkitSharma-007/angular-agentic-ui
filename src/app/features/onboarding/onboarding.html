@@ -49,22 +49,24 @@
             type="password"
             autocomplete="off"
             spellcheck="false"
-            [value]="candidateKey()"
-            (input)="candidateKey.set($any($event.target).value)"
+            [formField]="f.key"
             placeholder="AIza…"
           />
           <mat-hint>Paste a key from AI Studio. Stays in your browser.</mat-hint>
+          @if (f.key().touched() && f.key().invalid()) {
+            <mat-error>{{ f.key().errors()[0]?.message }}</mat-error>
+          }
         </mat-form-field>
 
         <div class="storage-row">
           <mat-slide-toggle
-            [checked]="remember()"
-            (change)="remember.set($event.checked)"
+            [checked]="model().remember"
+            (change)="model.update((m) => ({ ...m, remember: $event.checked }))"
           >
             Remember on this device (encrypted with a passphrase)
           </mat-slide-toggle>
           <p class="storage-hint">
-            @if (remember()) {
+            @if (model().remember) {
               Stored encrypted in <code>localStorage</code> via WebCrypto AES-GCM.
               You'll be asked for this passphrase next time you open the app.
               <strong>It is not recoverable.</strong>
@@ -75,7 +77,7 @@
           </p>
         </div>
 
-        @if (remember()) {
+        @if (model().remember) {
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Passphrase</mat-label>
             <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
@@ -84,8 +86,7 @@
               [type]="showPassphrase() ? 'text' : 'password'"
               autocomplete="new-password"
               spellcheck="false"
-              [value]="passphrase()"
-              (input)="passphrase.set($any($event.target).value)"
+              [formField]="f.passphrase"
               placeholder="At least 6 characters"
             />
             <button
@@ -99,6 +100,9 @@
                 {{ showPassphrase() ? 'visibility_off' : 'visibility' }}
               </span>
             </button>
+            @if (f.passphrase().touched() && f.passphrase().invalid()) {
+              <mat-error>{{ f.passphrase().errors()[0]?.message }}</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
@@ -109,10 +113,9 @@
               [type]="showPassphrase() ? 'text' : 'password'"
               autocomplete="new-password"
               spellcheck="false"
-              [value]="passphraseConfirm()"
-              (input)="passphraseConfirm.set($any($event.target).value)"
+              [formField]="f.passphraseConfirm"
             />
-            @if (passphrase().length > 0 && passphraseConfirm().length > 0 && passphrase() !== passphraseConfirm()) {
+            @if (passphraseMismatch()) {
               <mat-error>Passphrases don't match.</mat-error>
             }
           </mat-form-field>
@@ -160,7 +163,7 @@
             <mat-progress-spinner diameter="18" mode="indeterminate" />
             Saving…
           } @else {
-            @if (remember()) {
+            @if (model().remember) {
               <span class="material-symbols-outlined" aria-hidden="true">lock</span>
               Save (encrypted)
             } @else {
@@ -199,8 +202,7 @@
             [type]="showPassphrase() ? 'text' : 'password'"
             autocomplete="current-password"
             spellcheck="false"
-            [value]="passphrase()"
-            (input)="passphrase.set($any($event.target).value)"
+            [formField]="f.passphrase"
             (keydown.enter)="canUnlock() && unlock()"
           />
           <button
