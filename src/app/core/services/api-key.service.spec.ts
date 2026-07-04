@@ -1,13 +1,23 @@
 import { TestBed } from '@angular/core/testing';
+import { IDBFactory } from 'fake-indexeddb';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ApiKeyService } from './api-key.service';
 import { DecryptionFailedError } from '../crypto/webcrypto.helpers';
+import { deleteSessionKek, getSessionKek } from '../crypto/session-key-store';
 
-const SESSION_STORAGE_KEY = 'agentic-ui.api-key.session';
+const SESSION_ENVELOPE_KEY = 'agentic-ui.api-key.session.v2';
+const LEGACY_SESSION_KEY = 'agentic-ui.api-key.session';
 const LOCAL_STORAGE_KEY = 'agentic-ui.api-key.encrypted';
+
+function freshService(): ApiKeyService {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({});
+  return TestBed.inject(ApiKeyService);
+}
 
 describe('ApiKeyService', () => {
   beforeEach(() => {
+    (globalThis as unknown as { indexedDB: IDBFactory }).indexedDB = new IDBFactory();
     sessionStorage.clear();
     localStorage.clear();
     TestBed.resetTestingModule();
@@ -27,57 +37,104 @@ describe('ApiKeyService', () => {
     expect(service.storage()).toBe('session');
   });
 
-  it('setForSession() stores the key in memory + sessionStorage', () => {
+  it('setForSession() holds the key in memory and persists only an encrypted envelope (no plaintext at rest)', async () => {
     const service = TestBed.inject(ApiKeyService);
-    service.setForSession('sk-test-123');
+    await service.setForSession('sk-test-123');
 
     expect(service.key()).toBe('sk-test-123');
     expect(service.hasKey()).toBe(true);
     expect(service.storage()).toBe('session');
-    expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBe('sk-test-123');
+
+    // No plaintext slot is written…
+    expect(sessionStorage.getItem(LEGACY_SESSION_KEY)).toBeNull();
+    // …only an AES-GCM envelope, and it never contains the raw key.
+    const raw = sessionStorage.getItem(SESSION_ENVELOPE_KEY)!;
+    expect(raw).toBeTruthy();
+    expect(raw).not.toContain('sk-test-123');
+    const envelope = JSON.parse(raw);
+    expect(envelope.version).toBe(1);
+    expect(envelope.iv).toBeTruthy();
+    expect(envelope.ciphertext).toBeTruthy();
+    // The KEK is stored as a non-extractable CryptoKey handle in IndexedDB.
+    const kek = await getSessionKek();
+    expect(kek).toBeInstanceOf(CryptoKey);
+    expect(kek!.extractable).toBe(false);
   });
 
-  it('hydrates the session key when the service is created with one in storage', () => {
-    sessionStorage.setItem(SESSION_STORAGE_KEY, 'sk-hydrated');
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({});
+  it('restore() rehydrates the session key from the envelope + KEK across a reload', async () => {
     const service = TestBed.inject(ApiKeyService);
+    await service.setForSession('sk-reload');
 
-    expect(service.key()).toBe('sk-hydrated');
-    expect(service.storage()).toBe('session');
+    // A brand-new instance starts empty until restore() runs (the app does this
+    // in an APP_INITIALIZER).
+    const fresh = freshService();
+    expect(fresh.key()).toBeNull();
+
+    await fresh.restore();
+    expect(fresh.key()).toBe('sk-reload');
+    expect(fresh.storage()).toBe('session');
   });
 
-  it('lock() clears the in-memory key + sessionStorage but leaves the locked blob alone', async () => {
+  it('restore() drops an orphaned envelope when the KEK is gone', async () => {
+    const service = TestBed.inject(ApiKeyService);
+    await service.setForSession('sk-orphan');
+    // Simulate losing the IndexedDB half while the sessionStorage half remains.
+    await deleteSessionKek();
+
+    const fresh = freshService();
+    await fresh.restore();
+
+    expect(fresh.key()).toBeNull();
+    expect(sessionStorage.getItem(SESSION_ENVELOPE_KEY)).toBeNull();
+  });
+
+  it('restore() migrates a pre-v2 plaintext session key to an encrypted envelope', async () => {
+    sessionStorage.setItem(LEGACY_SESSION_KEY, 'sk-legacy');
+
+    const service = freshService();
+    await service.restore();
+
+    expect(service.key()).toBe('sk-legacy');
+    expect(service.storage()).toBe('session');
+    // Legacy plaintext is upgraded away, replaced by an envelope.
+    expect(sessionStorage.getItem(LEGACY_SESSION_KEY)).toBeNull();
+    expect(sessionStorage.getItem(SESSION_ENVELOPE_KEY)).toBeTruthy();
+  });
+
+  it('lock() clears the in-memory key + session persistence but leaves the locked blob alone', async () => {
     const service = TestBed.inject(ApiKeyService);
     await service.setEncryptedLocal('sk-locked', 'passphrase-1');
     expect(service.hasLockedBlob()).toBe(true);
 
-    service.lock();
+    await service.lock();
 
     expect(service.key()).toBeNull();
     expect(service.hasKey()).toBe(false);
-    expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+    expect(sessionStorage.getItem(SESSION_ENVELOPE_KEY)).toBeNull();
     expect(localStorage.getItem(LOCAL_STORAGE_KEY)).not.toBeNull();
     expect(service.hasLockedBlob()).toBe(true);
   });
 
-  it('clear() wipes session, localStorage, and resets all signals', async () => {
+  it('clear() wipes the session envelope, KEK, localStorage, and resets all signals', async () => {
     const service = TestBed.inject(ApiKeyService);
-    service.setForSession('sk-1');
+    await service.setForSession('sk-1');
     await service.setEncryptedLocal('sk-2', 'pw');
 
-    service.clear();
+    await service.clear();
 
     expect(service.key()).toBeNull();
     expect(service.hasLockedBlob()).toBe(false);
     expect(service.storage()).toBe('session');
-    expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+    expect(sessionStorage.getItem(SESSION_ENVELOPE_KEY)).toBeNull();
+    expect(sessionStorage.getItem(LEGACY_SESSION_KEY)).toBeNull();
     expect(localStorage.getItem(LOCAL_STORAGE_KEY)).toBeNull();
+    expect(await getSessionKek()).toBeNull();
   });
 });
 
 describe('ApiKeyService — encrypt + decrypt round-trip', () => {
   beforeEach(() => {
+    (globalThis as unknown as { indexedDB: IDBFactory }).indexedDB = new IDBFactory();
     sessionStorage.clear();
     localStorage.clear();
     TestBed.resetTestingModule();
@@ -88,11 +145,7 @@ describe('ApiKeyService — encrypt + decrypt round-trip', () => {
     const service = TestBed.inject(ApiKeyService);
     await service.setEncryptedLocal('sk-roundtrip', 'correct horse battery staple');
 
-    // Re-create the service to simulate a page reload.
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({});
-    const fresh = TestBed.inject(ApiKeyService);
-
+    const fresh = freshService();
     expect(fresh.key()).toBeNull();
     expect(fresh.hasLockedBlob()).toBe(true);
 
@@ -105,10 +158,7 @@ describe('ApiKeyService — encrypt + decrypt round-trip', () => {
     const service = TestBed.inject(ApiKeyService);
     await service.setEncryptedLocal('sk-secret', 'right-passphrase');
 
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({});
-    const fresh = TestBed.inject(ApiKeyService);
-
+    const fresh = freshService();
     await expect(fresh.unlockLocal('wrong-passphrase')).rejects.toBeInstanceOf(
       DecryptionFailedError,
     );
@@ -116,17 +166,14 @@ describe('ApiKeyService — encrypt + decrypt round-trip', () => {
 
   it('unlockLocal() throws when no locked blob exists', async () => {
     const service = TestBed.inject(ApiKeyService);
-    await expect(service.unlockLocal('anything')).rejects.toThrow(
-      /No encrypted key stored/,
-    );
+    await expect(service.unlockLocal('anything')).rejects.toThrow(/No encrypted key stored/);
   });
 
   it('setEncryptedLocal() persists JSON envelope v1/AES-GCM', async () => {
     const service = TestBed.inject(ApiKeyService);
     await service.setEncryptedLocal('sk', 'pw');
 
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEY)!;
-    const payload = JSON.parse(raw);
+    const payload = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
     expect(payload.version).toBe(1);
     expect(payload.algorithm).toBe('AES-GCM');
     expect(payload.kdf).toBe('PBKDF2-SHA256');
@@ -135,15 +182,16 @@ describe('ApiKeyService — encrypt + decrypt round-trip', () => {
     expect(payload.ciphertext).toBeTruthy();
   });
 
-  it('setEncryptedLocal() switches storage mode to encrypted-local and clears sessionStorage', async () => {
+  it('setEncryptedLocal() switches storage mode to encrypted-local and clears the session envelope', async () => {
     const service = TestBed.inject(ApiKeyService);
-    service.setForSession('sk-session');
-    expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBe('sk-session');
+    await service.setForSession('sk-session');
+    expect(sessionStorage.getItem(SESSION_ENVELOPE_KEY)).toBeTruthy();
 
     await service.setEncryptedLocal('sk-locked', 'pw');
 
     expect(service.key()).toBe('sk-locked');
     expect(service.storage()).toBe('encrypted-local');
-    expect(sessionStorage.getItem(SESSION_STORAGE_KEY)).toBeNull();
+    expect(sessionStorage.getItem(SESSION_ENVELOPE_KEY)).toBeNull();
+    expect(await getSessionKek()).toBeNull();
   });
 });

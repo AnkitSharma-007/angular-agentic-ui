@@ -2,17 +2,28 @@ import { Injectable, computed, signal } from '@angular/core';
 import {
   DecryptionFailedError,
   EncryptedPayloadV1,
+  SessionKeyEnvelope,
   decryptString,
+  decryptWithKey,
   encryptString,
+  encryptWithKey,
+  generateSessionKek,
 } from '../crypto/webcrypto.helpers';
+import { deleteSessionKek, getSessionKek, putSessionKek } from '../crypto/session-key-store';
 
 export type KeyStorage = 'session' | 'encrypted-local';
 
-const SESSION_STORAGE_KEY = 'agentic-ui.api-key.session';
+// v2 session tier: only the AES-GCM envelope (iv + ciphertext) lives here; the
+// non-extractable KEK lives in IndexedDB. `LEGACY_SESSION_KEY` is the pre-v2
+// plaintext slot, read once on restore so existing users migrate seamlessly and
+// used as a best-effort fallback when WebCrypto/IndexedDB is unavailable.
+const SESSION_ENVELOPE_KEY = 'agentic-ui.api-key.session.v2';
+const LEGACY_SESSION_KEY = 'agentic-ui.api-key.session';
 const LOCAL_STORAGE_KEY = 'agentic-ui.api-key.encrypted';
 
-// BYOK key with two storage tiers: in-memory/session, or AES-GCM encrypted
-// in localStorage (requires a passphrase to unlock on subsequent loads).
+// BYOK key with two storage tiers: session (encrypted with a non-extractable
+// per-session KEK, no passphrase) or AES-GCM encrypted in localStorage (requires
+// a passphrase to unlock on subsequent loads).
 @Injectable({ providedIn: 'root' })
 export class ApiKeyService {
   private readonly _key = signal<string | null>(null);
@@ -24,18 +35,38 @@ export class ApiKeyService {
 
   readonly hasLockedBlob = signal<boolean>(this.readLockedBlob() !== null);
 
-  constructor() {
-    const fromSession = this.readSessionKey();
-    if (fromSession) {
-      this._key.set(fromSession);
-      this._storage.set('session');
+  // Rehydrate the session key from storage. Async because the KEK lives in
+  // IndexedDB and decryption is async — an APP_INITIALIZER awaits this so the
+  // first render already knows whether a key is present (no onboarding flash).
+  // Always resolves; a corrupt/undecryptable envelope is cleared, not thrown.
+  async restore(): Promise<void> {
+    try {
+      const envelope = this.readSessionEnvelope();
+      if (envelope) {
+        const kek = await getSessionKek();
+        if (kek) {
+          const key = await decryptWithKey(kek, envelope);
+          this._key.set(key);
+          this._storage.set('session');
+          return;
+        }
+        // Envelope without a usable KEK (or the reverse) can never decrypt —
+        // drop the orphaned half rather than leave a dead key around.
+        await this.clearSessionPersistence();
+        return;
+      }
+      // Pre-v2 plaintext: adopt it and upgrade to an encrypted envelope.
+      const legacy = this.readLegacyPlaintext();
+      if (legacy) await this.setForSession(legacy);
+    } catch {
+      // Storage unavailable / unexpected shape — start with no session key.
     }
   }
 
-  setForSession(key: string): void {
+  async setForSession(key: string): Promise<void> {
     this._key.set(key);
     this._storage.set('session');
-    safeWrite(() => sessionStorage.setItem(SESSION_STORAGE_KEY, key));
+    await this.persistSession(key);
   }
 
   async setEncryptedLocal(key: string, passphrase: string): Promise<void> {
@@ -46,7 +77,7 @@ export class ApiKeyService {
     } catch (err) {
       throw new Error('Failed to write encrypted key to localStorage.', { cause: err });
     }
-    safeWrite(() => sessionStorage.removeItem(SESSION_STORAGE_KEY));
+    await this.clearSessionPersistence();
     this._key.set(key);
     this._storage.set('encrypted-local');
   }
@@ -59,24 +90,58 @@ export class ApiKeyService {
     this._storage.set('encrypted-local');
   }
 
-  clear(): void {
+  async clear(): Promise<void> {
     this._key.set(null);
     this._storage.set('session');
-    safeWrite(() => sessionStorage.removeItem(SESSION_STORAGE_KEY));
+    await this.clearSessionPersistence();
     safeWrite(() => localStorage.removeItem(LOCAL_STORAGE_KEY));
     this.hasLockedBlob.set(false);
   }
 
-  lock(): void {
+  async lock(): Promise<void> {
     this._key.set(null);
-    safeWrite(() => sessionStorage.removeItem(SESSION_STORAGE_KEY));
+    await this.clearSessionPersistence();
   }
 
   static readonly DecryptionFailedError = DecryptionFailedError;
 
-  private readSessionKey(): string | null {
+  // Encrypt the key under a fresh non-extractable KEK and persist both halves.
+  // Falls back to best-effort plaintext only when WebCrypto/IndexedDB is missing
+  // so the key still survives a reload in that environment.
+  private async persistSession(key: string): Promise<void> {
     try {
-      return sessionStorage.getItem(SESSION_STORAGE_KEY);
+      const kek = await generateSessionKek();
+      await putSessionKek(kek);
+      const envelope = await encryptWithKey(kek, key);
+      safeWrite(() => sessionStorage.setItem(SESSION_ENVELOPE_KEY, JSON.stringify(envelope)));
+      safeWrite(() => sessionStorage.removeItem(LEGACY_SESSION_KEY));
+    } catch {
+      safeWrite(() => sessionStorage.setItem(LEGACY_SESSION_KEY, key));
+      safeWrite(() => sessionStorage.removeItem(SESSION_ENVELOPE_KEY));
+      await deleteSessionKek().catch(() => undefined);
+    }
+  }
+
+  private async clearSessionPersistence(): Promise<void> {
+    safeWrite(() => sessionStorage.removeItem(SESSION_ENVELOPE_KEY));
+    safeWrite(() => sessionStorage.removeItem(LEGACY_SESSION_KEY));
+    await deleteSessionKek().catch(() => undefined);
+  }
+
+  private readSessionEnvelope(): SessionKeyEnvelope | null {
+    try {
+      const raw = sessionStorage.getItem(SESSION_ENVELOPE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as SessionKeyEnvelope;
+      return parsed.version === 1 && !!parsed.iv && !!parsed.ciphertext ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private readLegacyPlaintext(): string | null {
+    try {
+      return sessionStorage.getItem(LEGACY_SESSION_KEY);
     } catch {
       return null;
     }

@@ -108,7 +108,7 @@ export class SettingsComponent {
     const confirmed = confirm(
       'Clear the API key from this device? You will need to re-enter it.',
     );
-    if (confirmed) this.apiKey.clear();
+    if (confirmed) void this.apiKey.clear();
   }
 
   protected saveBudget(): void {

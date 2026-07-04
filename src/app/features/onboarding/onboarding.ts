@@ -117,7 +117,7 @@ export class OnboardingComponent {
       if (this.remember()) {
         await this.apiKey.setEncryptedLocal(key, this.passphrase());
       } else {
-        this.apiKey.setForSession(key);
+        await this.apiKey.setForSession(key);
       }
       this.status.set({ kind: 'idle' });
       this.ready.emit();
@@ -146,7 +146,7 @@ export class OnboardingComponent {
       'Forget the encrypted key stored on this device? You will need to paste a key again.',
     );
     if (confirmed) {
-      this.apiKey.clear();
+      void this.apiKey.clear();
       this.passphrase.set('');
       this.status.set({ kind: 'idle' });
     }

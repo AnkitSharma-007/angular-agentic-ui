@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   DecryptionFailedError,
   decryptString,
+  decryptWithKey,
   encryptString,
+  encryptWithKey,
+  generateSessionKek,
 } from './webcrypto.helpers';
 
 describe('webcrypto.helpers', () => {
@@ -54,6 +57,48 @@ describe('webcrypto.helpers', () => {
     await expect(decryptString(tampered, 'pw')).rejects.toBeInstanceOf(
       DecryptionFailedError,
     );
+  });
+});
+
+describe('webcrypto.helpers — session KEK', () => {
+  it('generates a non-extractable AES-GCM key', async () => {
+    const kek = await generateSessionKek();
+    expect(kek).toBeInstanceOf(CryptoKey);
+    expect(kek.extractable).toBe(false);
+    expect((kek.algorithm as { name: string }).name).toBe('AES-GCM');
+    expect(kek.usages).toContain('encrypt');
+    expect(kek.usages).toContain('decrypt');
+  });
+
+  it('round-trips a string through encryptWithKey + decryptWithKey', async () => {
+    const kek = await generateSessionKek();
+    const envelope = await encryptWithKey(kek, 'sk-session-42 — юникод');
+    expect(envelope.version).toBe(1);
+    expect(envelope.iv).toBeTruthy();
+    expect(envelope.ciphertext).toBeTruthy();
+    expect(await decryptWithKey(kek, envelope)).toBe('sk-session-42 — юникод');
+  });
+
+  it('uses a fresh IV each time (different ciphertext for the same input)', async () => {
+    const kek = await generateSessionKek();
+    const a = await encryptWithKey(kek, 'same');
+    const b = await encryptWithKey(kek, 'same');
+    expect(a.iv).not.toBe(b.iv);
+    expect(a.ciphertext).not.toBe(b.ciphertext);
+  });
+
+  it('throws DecryptionFailedError when decrypting with a different KEK', async () => {
+    const envelope = await encryptWithKey(await generateSessionKek(), 'secret');
+    await expect(decryptWithKey(await generateSessionKek(), envelope)).rejects.toBeInstanceOf(
+      DecryptionFailedError,
+    );
+  });
+
+  it('throws DecryptionFailedError when the ciphertext is tampered with', async () => {
+    const kek = await generateSessionKek();
+    const envelope = await encryptWithKey(kek, 'payload');
+    const tampered = { ...envelope, ciphertext: corruptBase64(envelope.ciphertext) };
+    await expect(decryptWithKey(kek, tampered)).rejects.toBeInstanceOf(DecryptionFailedError);
   });
 });
 

@@ -127,3 +127,65 @@ export async function decryptString(
     throw new DecryptionFailedError(err);
   }
 }
+
+// --- Session-tier encryption -------------------------------------------------
+//
+// The "session" storage tier (no passphrase) encrypts the key with a random,
+// **non-extractable** AES-GCM key (the KEK). The KEK lives as a CryptoKey handle
+// in IndexedDB (see session-key-store.ts) — its raw bytes can never be read back
+// out — and only this envelope (iv + ciphertext) is written to sessionStorage.
+// Net effect: the plaintext key is never at rest, and an XSS payload can't
+// exfiltrate the KEK; it would have to actively call decrypt() to recover the
+// key. It still survives a reload (both halves persist within the session).
+
+export interface SessionKeyEnvelope {
+  readonly version: 1;
+  readonly iv: string;
+  readonly ciphertext: string;
+}
+
+export function generateSessionKek(): Promise<CryptoKey> {
+  const subtle = assertSubtle();
+  // extractable = false: the raw key material can never leave WebCrypto.
+  return subtle.generateKey({ name: 'AES-GCM', length: KEY_BITS }, false, [
+    'encrypt',
+    'decrypt',
+  ]);
+}
+
+export async function encryptWithKey(
+  key: CryptoKey,
+  plaintext: string,
+): Promise<SessionKeyEnvelope> {
+  const subtle = assertSubtle();
+  const iv = randomBytes(IV_BYTES);
+  const ciphertextBuf = await subtle.encrypt(
+    { name: 'AES-GCM', iv: iv as BufferSource },
+    key,
+    new TextEncoder().encode(plaintext) as BufferSource,
+  );
+  return {
+    version: 1,
+    iv: toBase64(iv),
+    ciphertext: toBase64(new Uint8Array(ciphertextBuf)),
+  };
+}
+
+export async function decryptWithKey(
+  key: CryptoKey,
+  envelope: SessionKeyEnvelope,
+): Promise<string> {
+  const subtle = assertSubtle();
+  try {
+    const iv = fromBase64(envelope.iv);
+    const ciphertext = fromBase64(envelope.ciphertext);
+    const plainBuf = await subtle.decrypt(
+      { name: 'AES-GCM', iv: iv as BufferSource },
+      key,
+      ciphertext as BufferSource,
+    );
+    return new TextDecoder().decode(plainBuf);
+  } catch (err) {
+    throw new DecryptionFailedError(err);
+  }
+}
