@@ -19,8 +19,8 @@
           <h2>Pure frontend. No backend.</h2>
           <p>
             The app runs entirely in your browser and calls
-            <code>{{ config.geminiEndpoint }}</code> directly using the key you
-            provide. There is no server in the middle to log, leak, or invoice.
+            <code>{{ config.geminiEndpoint }}</code> directly using the key you provide. There is no
+            server in the middle to log, leak, or invoice.
           </p>
         </div>
       </div>
@@ -43,18 +43,16 @@
           <li>
             <span class="li-badge li-badge--default">Default</span>
             <div>
-              <strong>Session-only.</strong> Held in memory and
-              <code>sessionStorage</code> for the active tab. Wiped when you
-              close the tab.
+              <strong>Session-only.</strong> Held in memory and <code>sessionStorage</code> for the
+              active tab. Wiped when you close the tab.
             </div>
           </li>
           <li>
             <span class="li-badge li-badge--optin">Opt-in</span>
             <div>
-              <strong>Encrypted on this device.</strong> Encrypted with a
-              passphrase via WebCrypto AES-GCM (PBKDF2-derived key, SHA-256,
-              250 000 iterations) and stored in <code>localStorage</code>.
-              The passphrase never leaves your browser.
+              <strong>Encrypted on this device.</strong> Encrypted with a passphrase via WebCrypto
+              AES-GCM (PBKDF2-derived key, SHA-256, 250 000 iterations) and stored in
+              <code>localStorage</code>. The passphrase never leaves your browser.
             </div>
           </li>
         </ul>
@@ -104,20 +102,19 @@
           <li>
             <mat-icon aria-hidden="true">check_circle</mat-icon>
             Images you attach are downscaled in your browser and sent
-            <strong>inline</strong> to <code>{{ config.geminiEndpoint }}</code> —
-            never uploaded to any other host.
+            <strong>inline</strong> to <code>{{ config.geminiEndpoint }}</code> — never uploaded to
+            any other host.
           </li>
           <li>
             <mat-icon aria-hidden="true">check_circle</mat-icon>
-            Voice input uses your browser's built-in speech recognition. Depending
-            on your browser, that audio may be processed by its speech provider
-            (often cloud-based) — but this app itself never records, stores, or
-            sends your audio.
+            Voice input uses your browser's built-in speech recognition. Depending on your browser,
+            that audio may be processed by its speech provider (often cloud-based) — but this app
+            itself never records, stores, or sends your audio.
           </li>
           <li>
             <mat-icon aria-hidden="true">check_circle</mat-icon>
-            Saved runs (including any attached media) live only in this
-            browser's <code>IndexedDB</code> so replays stay self-contained.
+            Saved runs (including any attached media) live only in this browser's
+            <code>IndexedDB</code> so replays stay self-contained.
           </li>
         </ul>
       </mat-card-content>
@@ -137,9 +134,8 @@
         <ul class="check-list">
           <li>
             <mat-icon aria-hidden="true">check_circle</mat-icon>
-            When the agent proposes a new tool, it <strong>pauses for your
-            review</strong> — nothing is registered until you approve it. You can
-            edit or reject any proposal.
+            When the agent proposes a new tool, it <strong>pauses for your review</strong> — nothing
+            is registered until you approve it. You can edit or reject any proposal.
           </li>
           <li>
             <mat-icon aria-hidden="true">check_circle</mat-icon>
@@ -149,8 +145,41 @@
           <li>
             <mat-icon aria-hidden="true">check_circle</mat-icon>
             Approved tools are stored only in this browser's
-            <code>IndexedDB</code> and are labelled <em>Agent</em> in the Tools
-            library so their origin is always clear.
+            <code>IndexedDB</code> and are labelled <em>Agent</em> in the Tools library so their
+            origin is always clear.
+          </li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="card">
+      <mat-card-content>
+        <div class="card-head">
+          <span class="card-head-icon">
+            <mat-icon>bug_report</mat-icon>
+          </span>
+          <div class="card-head-text">
+            <h3>Diagnostics &amp; error logs</h3>
+            <p>Logs help you debug — and never leave your device.</p>
+          </div>
+        </div>
+        <ul class="check-list">
+          <li>
+            <mat-icon aria-hidden="true">check_circle</mat-icon>
+            When something goes wrong, the app keeps a small
+            <strong>in-memory</strong> log of the most recent events for troubleshooting. It is
+            discarded when you close the tab.
+          </li>
+          <li>
+            <mat-icon aria-hidden="true">check_circle</mat-icon>
+            Every log entry is <strong>redacted</strong> before it is recorded — your API key,
+            passphrases, and attached media are scrubbed, so secrets never reach the console or the
+            log buffer.
+          </li>
+          <li>
+            <mat-icon aria-hidden="true">check_circle</mat-icon>
+            There is <strong>no remote logging or crash-reporting</strong>
+            service. Diagnostics stay in your browser; nothing is sent anywhere.
           </li>
         </ul>
       </mat-card-content>
@@ -168,9 +197,9 @@
           </div>
         </div>
         <p class="card-body-text">
-          Open your browser's Network panel while using {{ config.appName }}.
-          You'll see requests only to <code>{{ config.geminiEndpoint }}</code>.
-          No analytics beacons, no telemetry, no surprise hops.
+          Open your browser's Network panel while using {{ config.appName }}. You'll see requests
+          only to <code>{{ config.geminiEndpoint }}</code
+          >. No analytics beacons, no telemetry, no surprise hops.
         </p>
       </mat-card-content>
     </mat-card>

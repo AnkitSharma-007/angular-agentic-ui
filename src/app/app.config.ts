@@ -14,12 +14,14 @@ import {
   type NavigationError,
 } from '@angular/router';
 import { MAT_ICON_DEFAULT_OPTIONS } from '@angular/material/icon';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { provideTools } from './core/registry/register-tools';
 import { ApiKeyService } from './core/services/api-key.service';
 import { GlobalErrorHandler } from './core/errors/global-error-handler';
 import { ErrorService } from './core/errors/error.service';
+import { errorInterceptor } from './core/http/error.interceptor';
 import { LOG_SINKS, ConsoleLogSink, RingBufferLogSink } from './core/logging/log-sink';
 
 export const appConfig: ApplicationConfig = {
@@ -41,6 +43,10 @@ export const appConfig: ApplicationConfig = {
       }),
     ),
     provideTools(),
+    // Forward-looking seam: registers HttpClient with a normalizing error
+    // interceptor. Inert today (no HttpClient consumer ships — Gemini traffic
+    // goes through the @google/genai SDK), but ready for the first HTTP feature.
+    provideHttpClient(withInterceptors([errorInterceptor])),
     // Await session-key rehydration before first render so the app already knows
     // whether a key is present (the KEK/envelope decrypt is async).
     provideAppInitializer(() => inject(ApiKeyService).restore()),

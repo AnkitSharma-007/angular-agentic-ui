@@ -40,6 +40,15 @@ export function normalizeError(err: unknown, context?: Record<string, unknown>):
     });
   }
 
+  // Angular HttpClient failure. Forward-looking: no HttpClient consumer ships
+  // today (Gemini traffic goes through the @google/genai SDK), but the
+  // interceptor + this status-based mapping are ready for the first one. Matched
+  // by duck-typing so this core module stays free of an @angular/common/http
+  // import; status wins over the textual heuristics below.
+  if (isHttpErrorResponse(err)) {
+    return httpErrorToAppError(err, technicalMessage, context);
+  }
+
   // A lazily-loaded chunk failed to import — usually a stale deploy or a blip
   // while offline. Recoverable via reload.
   if (isChunkLoadError(err, message)) {
@@ -171,6 +180,106 @@ export function extractMessage(err: unknown): string {
     }
   }
   return String(err);
+}
+
+// Minimal structural view of an Angular `HttpErrorResponse` — enough to
+// classify by status without importing the HTTP package into the core.
+interface HttpErrorLike {
+  readonly name: string;
+  readonly status: number;
+  readonly statusText?: string;
+  readonly url?: string | null;
+}
+
+function isHttpErrorResponse(err: unknown): err is HttpErrorLike {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    (err as { name?: unknown }).name === 'HttpErrorResponse' &&
+    typeof (err as { status?: unknown }).status === 'number'
+  );
+}
+
+// Map an HTTP status onto the taxonomy. Retryable only where a later attempt can
+// plausibly succeed (transport failure, timeout, rate-limit, transient 5xx).
+function httpErrorToAppError(
+  err: HttpErrorLike,
+  technicalMessage: string,
+  context?: Record<string, unknown>,
+): AppError {
+  const status = err.status;
+  const ctx = { ...context, httpStatus: status };
+
+  // Status 0: the browser never received a response (offline, DNS, CORS, or a
+  // dropped connection) — a transport problem, not a server one.
+  if (status === 0) {
+    return new NetworkError({
+      code: 'offline',
+      retryable: true,
+      userMessage:
+        'Network error: the request could not be completed. Check your connection and try again.',
+      technicalMessage,
+      context: ctx,
+      cause: err,
+    });
+  }
+  if (status === 401 || status === 403) {
+    return new AuthError({
+      code: status === 401 ? 'unauthorized' : 'forbidden',
+      userMessage:
+        'Authentication failed. Your API key may be invalid or expired. Open Settings to update it.',
+      technicalMessage,
+      context: ctx,
+      cause: err,
+    });
+  }
+  if (status === 408 || status === 504) {
+    return new NetworkError({
+      code: 'timeout',
+      retryable: true,
+      userMessage: 'The request timed out. Please try again.',
+      technicalMessage,
+      context: ctx,
+      cause: err,
+    });
+  }
+  if (status === 429) {
+    return new ApiError({
+      code: 'rate_limited',
+      retryable: true,
+      userMessage: 'Rate-limited. Wait a moment and try again.',
+      technicalMessage,
+      context: ctx,
+      cause: err,
+    });
+  }
+  if (status === 400 || status === 422) {
+    return new ValidationError({
+      code: `http_${status}`,
+      userMessage: 'The request was rejected as invalid. Please check your input and try again.',
+      technicalMessage,
+      context: ctx,
+      cause: err,
+    });
+  }
+  if (status >= 500) {
+    return new ApiError({
+      code: 'server_error',
+      retryable: status === 502 || status === 503,
+      userMessage: 'The server had a problem handling the request. Please try again shortly.',
+      technicalMessage,
+      context: ctx,
+      cause: err,
+    });
+  }
+  // Other 4xx (404, 409, …): a client/API error a plain retry won't fix.
+  return new ApiError({
+    code: `http_${status}`,
+    userMessage: 'The request could not be completed.',
+    technicalMessage,
+    context: ctx,
+    cause: err,
+  });
 }
 
 function isAbortError(err: unknown, message: string): boolean {

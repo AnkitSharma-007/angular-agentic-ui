@@ -85,6 +85,58 @@ describe('normalizeError — messaging (dev mode is on under test)', () => {
   });
 });
 
+describe('normalizeError — HttpErrorResponse (status-based)', () => {
+  // Duck-typed shape matching Angular's HttpErrorResponse (no real import).
+  function httpError(status: number, statusText = ''): unknown {
+    return { name: 'HttpErrorResponse', status, statusText, message: `Http failure ${status}` };
+  }
+
+  it('maps status 0 (no response) to a retryable network error', () => {
+    const out = normalizeError(httpError(0));
+    expect(out.category).toBe('network');
+    expect(out.code).toBe('offline');
+    expect(out.retryable).toBe(true);
+    expect(out.context).toMatchObject({ httpStatus: 0 });
+  });
+
+  it('maps 401/403 to auth errors', () => {
+    expect(normalizeError(httpError(401)).category).toBe('auth');
+    expect(normalizeError(httpError(403)).code).toBe('forbidden');
+  });
+
+  it('maps 408/504 to retryable timeouts', () => {
+    expect(normalizeError(httpError(408)).code).toBe('timeout');
+    const gatewayTimeout = normalizeError(httpError(504));
+    expect(gatewayTimeout.category).toBe('network');
+    expect(gatewayTimeout.retryable).toBe(true);
+  });
+
+  it('maps 429 to a retryable api rate-limit', () => {
+    const out = normalizeError(httpError(429));
+    expect(out.category).toBe('api');
+    expect(out.code).toBe('rate_limited');
+    expect(out.retryable).toBe(true);
+  });
+
+  it('maps 400/422 to validation errors', () => {
+    expect(normalizeError(httpError(400)).category).toBe('validation');
+    expect(normalizeError(httpError(422)).category).toBe('validation');
+  });
+
+  it('maps 5xx to api errors, retryable only for 502/503', () => {
+    expect(normalizeError(httpError(500)).retryable).toBe(false);
+    expect(normalizeError(httpError(503)).retryable).toBe(true);
+    expect(normalizeError(httpError(500)).category).toBe('api');
+  });
+
+  it('maps other 4xx (404/409) to non-retryable api errors', () => {
+    const out = normalizeError(httpError(404));
+    expect(out.category).toBe('api');
+    expect(out.code).toBe('http_404');
+    expect(out.retryable).toBe(false);
+  });
+});
+
 describe('normalizeStorageError — storage-context re-tagging', () => {
   it('re-tags an otherwise-unknown IDB failure as a storage error', () => {
     const out = normalizeStorageError(new Error('The database connection is closing.'), {
