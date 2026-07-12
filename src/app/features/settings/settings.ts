@@ -15,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { form, validate, FormField } from '@angular/forms/signals';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { Listbox, Option } from '@angular/aria/listbox';
 
 import { ApiKeyService } from '../../core/services/api-key.service';
 import { GeminiService, GEMINI_MODELS, GeminiModelId } from '../../core/services/gemini.service';
@@ -68,6 +69,8 @@ const THEME_OPTIONS: readonly ThemeOption[] = [
     MatIconModule,
     MatDividerModule,
     MatSlideToggleModule,
+    Listbox,
+    Option,
     PageHeaderComponent,
   ],
   templateUrl: './settings.html',
@@ -87,6 +90,20 @@ export class SettingsComponent {
   protected readonly selectedModelMeta = computed(() =>
     this.models.find((m) => m.id === this.gemini.selectedModel()),
   );
+
+  // Angular Aria's Listbox is the v22 single-selection pattern (roving tabindex,
+  // arrow-key nav, typeahead — closes M18). It models the selection as an array,
+  // so we adapt the ThemeService's single `preference` with a 1-element array.
+  protected readonly themeSelection = computed<ThemePreference[]>(() => [
+    this.theme.preference(),
+  ]);
+
+  protected onThemeChange(values: readonly ThemePreference[]): void {
+    const next = values[0];
+    if (next && next !== this.theme.preference()) {
+      this.theme.set(next);
+    }
+  }
 
   // Human-readable label for the key-storage tier instead of the raw enum
   // (`encrypted-local` / `session`).

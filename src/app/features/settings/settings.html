@@ -228,19 +228,26 @@
       </div>
     </div>
     <div class="card-body">
-      <div class="theme-picker" role="radiogroup" aria-label="Theme preference">
+      <div
+        ngListbox
+        class="theme-picker"
+        orientation="horizontal"
+        selectionMode="follow"
+        aria-label="Theme preference"
+        [value]="themeSelection()"
+        (valueChange)="onThemeChange($event)"
+      >
         @for (opt of themeOptions; track opt.value) {
-          <button
-            type="button"
-            role="radio"
+          <div
+            ngOption
             class="theme-option"
+            [value]="opt.value"
+            [label]="opt.label"
             [class.theme-option--active]="theme.preference() === opt.value"
-            [attr.aria-checked]="theme.preference() === opt.value"
-            (click)="theme.set(opt.value)"
           >
             <mat-icon>{{ opt.icon }}</mat-icon>
             <span>{{ opt.label }}</span>
-          </button>
+          </div>
         }
       </div>
     </div>

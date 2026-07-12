@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SettingsComponent } from './settings';
 import { BudgetService } from '../../core/observability/budget.service';
 import { GeminiService } from '../../core/services/gemini.service';
+import { ThemeService, type ThemePreference } from '../../core/services/theme.service';
 
 interface BudgetForm {
   maxTokens: number | null;
@@ -23,6 +24,7 @@ interface SettingsInternals {
   resetBudget(): void;
   applyPreset(preset: 'demo' | 'tight' | 'generous'): void;
   selectModel(id: 'gemini-3-flash-preview' | 'gemini-3.1-pro-preview' | 'gemini-3.1-flash-lite-preview'): void;
+  onThemeChange(values: readonly ThemePreference[]): void;
 }
 
 describe('SettingsComponent', () => {
@@ -143,5 +145,50 @@ describe('SettingsComponent', () => {
       maxRounds: null,
       maxCostUsd: null,
     });
+  });
+
+  it('renders the theme picker as an Angular Aria listbox with an option per theme', async () => {
+    const fixture = TestBed.createComponent(SettingsComponent);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+
+    // @angular/aria's ngListbox/ngOption apply the ARIA roles + keyboard model.
+    expect(el.querySelector('[role="listbox"]')).not.toBeNull();
+    expect(el.querySelectorAll('[role="option"]')).toHaveLength(3);
+  });
+
+  it('selecting a theme flows through the Aria listbox into ThemeService', async () => {
+    const theme = TestBed.inject(ThemeService);
+    theme.set('light');
+
+    const fixture = TestBed.createComponent(SettingsComponent);
+    await fixture.whenStable();
+    const inst = fixture.componentInstance as unknown as SettingsInternals;
+
+    inst.onThemeChange(['dark']);
+    await fixture.whenStable();
+    expect(theme.preference()).toBe('dark');
+
+    // The listbox reflects the new selection via aria-selected.
+    const selected = (fixture.nativeElement as HTMLElement).querySelector(
+      '[role="option"][aria-selected="true"]',
+    );
+    expect(selected?.textContent).toContain('Dark');
+  });
+
+  it('clicking an option selects it via the Aria listbox click handling', async () => {
+    const theme = TestBed.inject(ThemeService);
+    theme.set('system');
+
+    const fixture = TestBed.createComponent(SettingsComponent);
+    await fixture.whenStable();
+    const options = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('[role="option"]'),
+    ) as HTMLElement[];
+    const darkOption = options.find((o) => o.textContent?.includes('Dark'));
+
+    darkOption?.click();
+    await fixture.whenStable();
+    expect(theme.preference()).toBe('dark');
   });
 });
