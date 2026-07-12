@@ -327,6 +327,19 @@ describe('AgentEventStore', () => {
     expect(store.rawHistory().length).toBeGreaterThan(0);
   });
 
+  it('events() returns an independent snapshot (later pushes do not mutate it)', () => {
+    store.beginTurn('t1');
+    pushTextDelta(store, 't1', 'first');
+    const snapshot = store.events();
+    expect(snapshot).toHaveLength(1);
+
+    // A subsequent streamed delta must not retroactively grow an earlier
+    // snapshot — save() relies on reading a stable, point-in-time event list.
+    pushTextDelta(store, 't1', 'second');
+    expect(snapshot).toHaveLength(1);
+    expect(store.events()).toHaveLength(2);
+  });
+
   it('reset() returns the store to its initial state', () => {
     store.beginTurn('t1');
     pushTextDelta(store, 't1', 'hi');

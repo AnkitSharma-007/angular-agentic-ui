@@ -6,6 +6,11 @@
   </main>
 </div>
 
-<app-cost-meter />
-<app-observability-drawer />
+@defer (on idle) {
+  <app-cost-meter />
+}
+
+@defer (on idle) {
+  <app-observability-drawer />
+}
 

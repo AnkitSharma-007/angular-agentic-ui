@@ -62,14 +62,23 @@ const EMPTY_TURN: CurrentTurn = {
 // `rawHistory` (Gemini `Content[]` with thoughtSignature blobs preserved).
 @Service()
 export class AgentEventStore {
-  private readonly _events = signal<readonly AgentEvent[]>([]);
+  // Per-turn UI event log. Deliberately a plain mutable array rather than a
+  // signal: nothing renders it reactively (the live view reads `_currentTurn`),
+  // and `save()` is its only consumer, reading it once at end of turn. Appending
+  // to a signal via `[...list, event]` on every streamed delta was O(n²) across
+  // a turn; a plain `push` is O(1) (H5 — intra-turn delta batching).
+  private eventLog: AgentEvent[] = [];
   private readonly _rawHistory = signal<readonly HistoryContent[]>([]);
   private readonly _currentTurn = signal<CurrentTurn>(EMPTY_TURN);
   private readonly _phase = signal<StreamPhase>('idle');
   private readonly _error = signal<string | null>(null);
   private readonly _stats = signal({ chunks: 0, parts: 0, signedParts: 0 });
 
-  readonly events = this._events.asReadonly();
+  /** Snapshot of the current turn's UI events (read imperatively by `save()`). */
+  events(): readonly AgentEvent[] {
+    return this.eventLog.slice();
+  }
+
   readonly rawHistory = this._rawHistory.asReadonly();
   readonly currentTurn = this._currentTurn.asReadonly();
   readonly phase = this._phase.asReadonly();
@@ -103,11 +112,11 @@ export class AgentEventStore {
     this._phase.set(phase);
     this._error.set(null);
     this._stats.set({ chunks: 0, parts: 0, signedParts: 0 });
-    // Drop the previous turn's UI events so `_events` doesn't grow unbounded
-    // across a long session (H5). Only `save()` reads `_events`, and always for
+    // Drop the previous turn's UI events so the log doesn't grow unbounded
+    // across a long session (H5). Only `save()` reads the log, and always for
     // the current turn; the multi-turn model context lives in `_rawHistory`,
     // which is deliberately preserved here.
-    this._events.set([]);
+    this.eventLog = [];
     this._currentTurn.set({
       id: turnId,
       thoughtText: '',
@@ -124,7 +133,7 @@ export class AgentEventStore {
   }
 
   pushEvent(event: AgentEvent): void {
-    this._events.update((list) => [...list, event]);
+    this.eventLog.push(event);
     switch (event.type) {
       case 'thought_delta':
         this.updateCurrentTurn((t) => ({ ...t, thoughtText: t.thoughtText + event.chunk }));
@@ -237,7 +246,7 @@ export class AgentEventStore {
   }
 
   reset(): void {
-    this._events.set([]);
+    this.eventLog = [];
     this._rawHistory.set([]);
     this._currentTurn.set(EMPTY_TURN);
     this._phase.set('idle');
