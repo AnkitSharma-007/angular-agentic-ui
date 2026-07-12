@@ -25,8 +25,27 @@ export async function settleSingleCall(
   // interrupt prompt or side-effecting execution after abort (H1).
   if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
 
-  const meta: ToolMeta | undefined = deps.registry.get(call.name);
   const events: AgentEvent[] = [];
+
+  // L1: the model emitted a functionCall with no name (see the operator). It
+  // can't resolve to any tool, so short-circuit with a synthetic error instead
+  // of asking the registry to look up an empty name (which would reject with a
+  // noisy "Unknown tool" and still needs a paired functionResponse anyway).
+  if (!call.name) {
+    const responseForModel = {
+      error: 'The model emitted a tool call without a name; it was skipped.',
+    } as const;
+    events.push({
+      type: 'tool_result',
+      ts: Date.now(),
+      turnId,
+      callId: call.callId,
+      result: responseForModel,
+    });
+    return { call, events, responseForModel };
+  }
+
+  const meta: ToolMeta | undefined = deps.registry.get(call.name);
 
   let decision: InterruptDecision = { kind: 'approve' };
   if (meta?.interruptive) {

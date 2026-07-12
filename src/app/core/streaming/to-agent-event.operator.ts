@@ -72,6 +72,11 @@ export function chunkToEvents(chunk: GeminiChunk, state: StreamState): ChunkResu
   let finishReason: string | null = null;
 
   for (const candidate of chunk.candidates ?? []) {
+    // M4: once a round is finalized (a finishReason arrived in an earlier
+    // chunk), ignore any trailing candidates/parts. Out-of-order or duplicate
+    // tail chunks would otherwise emit a tool_call — or any event — *after*
+    // round_complete, violating timeline and settlement ordering.
+    if (finalized) break;
     for (const part of candidate.content?.parts ?? []) {
       const callId = `${turnId}:${partIndex++}`;
       const ts = Date.now();
@@ -90,12 +95,15 @@ export function chunkToEvents(chunk: GeminiChunk, state: StreamState): ChunkResu
         }
         case 'tool': {
           const fc = part.functionCall!;
+          // L1: a nameless functionCall can't map to a tool. Emit it with an
+          // empty name so the settlement layer fails it cleanly with a
+          // synthetic error instead of round-tripping through the registry.
           events.push({
             type: 'tool_call',
             ts,
             turnId,
             callId,
-            name: fc.name ?? 'unknown',
+            name: fc.name ?? '',
             args: toArgs(fc.args),
           });
           break;

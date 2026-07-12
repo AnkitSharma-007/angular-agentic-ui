@@ -12,6 +12,7 @@ export interface TimelineRow {
   readonly completedAt: number;
   readonly durationMs: number;
   readonly usage?: TokenUsage;
+  readonly usageAvailable?: boolean;
   readonly finishReason?: string;
   readonly costUsd?: number;
   readonly model?: string;
@@ -91,6 +92,7 @@ function roundToRow(round: RoundMetrics): TimelineRow {
     completedAt: round.completedAt,
     durationMs: round.latencyMs,
     usage: round.usage ?? ZERO_USAGE,
+    usageAvailable: round.usageAvailable,
     finishReason: round.finishReason,
     costUsd: round.costUsd,
     model: round.model,

@@ -271,6 +271,35 @@ describe('runAgentTurn — happy path (text only)', () => {
     ]);
   });
 
+  it('flags a round as usage-unavailable when the stream omits usageMetadata (M2)', async () => {
+    const h = makeHarness({
+      responses: [[textChunk('No usage reported'), finishChunk('STOP')]],
+    });
+
+    await drain(
+      runAgentTurn('Prompt', 't1', NOOP_OPTIONS, new AbortController().signal, h.deps),
+    );
+
+    const turn = h.tokens.currentTurn();
+    expect(turn.rounds).toHaveLength(1);
+    expect(turn.rounds[0].usageAvailable).toBe(false);
+    expect(turn.rounds[0].usage.totalTokens).toBe(0);
+  });
+
+  it('marks a round usage-available when the stream reports usageMetadata (M2)', async () => {
+    const h = makeHarness({
+      responses: [[textChunk('text'), finishChunk('STOP', { totalTokenCount: 42 })]],
+    });
+
+    await drain(
+      runAgentTurn('Prompt', 't1', NOOP_OPTIONS, new AbortController().signal, h.deps),
+    );
+
+    const turn = h.tokens.currentTurn();
+    expect(turn.rounds[0].usageAvailable).toBe(true);
+    expect(turn.rounds[0].usage.totalTokens).toBe(42);
+  });
+
   it('forwards usageMetadata to the TokenAccountantService', async () => {
     const h = makeHarness({
       responses: [
@@ -341,6 +370,31 @@ describe('runAgentTurn — tool execution', () => {
 
     const history = h.store.rawHistory();
     expect(history.map((h) => h.role)).toEqual(['user', 'model', 'tool', 'model']);
+  });
+
+  it('settles a nameless functionCall as a synthetic error and recovers (L1)', async () => {
+    const namelessToolChunk: GeminiChunk = {
+      candidates: [{ content: { role: 'model', parts: [{ functionCall: { args: {} } }] } }],
+    };
+    const h = makeHarness({
+      responses: [
+        [namelessToolChunk, finishChunk('STOP')],
+        [textChunk('Recovered.'), finishChunk('STOP')],
+      ],
+    });
+
+    const events = await drain(
+      runAgentTurn('Go', 't1', NOOP_OPTIONS, new AbortController().signal, h.deps),
+    );
+
+    const toolResult = events.find((e) => e.type === 'tool_result') as
+      | Extract<AgentEvent, { type: 'tool_result' }>
+      | undefined;
+    expect(toolResult).toBeDefined();
+    expect(toolResult?.result).toMatchObject({
+      error: expect.stringContaining('without a name'),
+    });
+    expect(events.at(-1)?.type).toBe('turn_complete');
   });
 
   it('runs two rounds when the first round emits a tool call', async () => {
@@ -516,6 +570,41 @@ describe('runAgentTurn — budget guard', () => {
 
     const turnComplete = events.at(-1) as Extract<AgentEvent, { type: 'turn_complete' }>;
     expect(turnComplete.finishReason).toBe('BUDGET_EXCEEDED:tokens');
+  });
+
+  it('re-checks the budget the moment a round overshoots, before spending another round (M1)', async () => {
+    const execute = vi.fn(() => ({ ok: true }));
+    const tools: ToolDef[] = [
+      {
+        meta: {
+          name: 'searchFlights',
+          description: 'find',
+          declaration: decl('searchFlights'),
+          interruptive: false,
+        },
+        execute,
+      },
+    ];
+    // A single round that requests a tool call *and* blows the token cap. Only
+    // one response is provided: if the loop tried to settle + start a second
+    // round it would throw "called more times than responses provided".
+    const h = makeHarness({
+      tools,
+      responses: [[toolChunk('searchFlights', {}), finishChunk('STOP', { totalTokenCount: 9999 })]],
+    });
+    h.budget.update({ maxTokens: 100 });
+
+    const events = await drain(
+      runAgentTurn('Find', 't1', NOOP_OPTIONS, new AbortController().signal, h.deps),
+    );
+
+    const turnComplete = events.at(-1) as Extract<AgentEvent, { type: 'turn_complete' }>;
+    expect(turnComplete.finishReason).toBe('BUDGET_EXCEEDED:tokens');
+    // The overshooting round's tool call is NOT settled — we bail before doing
+    // more work — and the completed-round count reflects the one round that ran.
+    expect(execute).not.toHaveBeenCalled();
+    expect(turnComplete.rounds).toBe(1);
+    expect(h.streamChunks).toHaveBeenCalledTimes(1);
   });
 });
 

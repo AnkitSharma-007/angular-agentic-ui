@@ -113,7 +113,7 @@ export async function* runAgentTurn(
 
       const breach = checkBudgetGuard(deps);
       if (breach) {
-        yield budgetTerminationEvent(turnId, round, breach, now);
+        yield budgetTerminationEvent(turnId, completedRounds(deps), breach, now);
         return;
       }
 
@@ -139,6 +139,17 @@ export async function* runAgentTurn(
           rounds: round + 1,
           finishReason: outcome.finishReason,
         };
+        return;
+      }
+
+      // M1: the top-of-loop guard alone lets a run overshoot by a full round —
+      // a round can blow the token/cost cap and we'd only catch it when the
+      // *next* round starts (and never, if this was the final round). Re-check
+      // the moment this round's usage is recorded, before we spend another
+      // round settling tool calls and calling the model again.
+      const overshoot = checkBudgetGuard(deps);
+      if (overshoot) {
+        yield budgetTerminationEvent(turnId, completedRounds(deps), overshoot, now);
         return;
       }
 
@@ -207,6 +218,10 @@ async function* streamRound(
   const toolCalls: ToolCallEvent[] = [];
   let state = initialState;
   let latestUsage: TokenUsage = ZERO_USAGE;
+  // M2: track whether the stream ever reported usageMetadata. When it doesn't,
+  // `latestUsage` is a zero placeholder — recorded so totals stay consistent,
+  // but flagged so the meter shows "usage unavailable" instead of a false $0.
+  let sawUsage = false;
   let finishReason = 'STOP';
 
   // Drive the iterator manually and race each `next()` against the abort signal.
@@ -227,6 +242,7 @@ async function* streamRound(
 
       if (chunk.usageMetadata) {
         latestUsage = toTokenUsage(chunk.usageMetadata);
+        sawUsage = true;
       }
 
       const { events, state: nextState } = chunkToEvents(chunk, state);
@@ -245,6 +261,7 @@ async function* streamRound(
             startedAt: roundStartedAt,
             completedAt,
             usage: latestUsage,
+            usageAvailable: sawUsage,
             model,
             finishReason: event.finishReason,
           });
@@ -252,6 +269,7 @@ async function* streamRound(
             ...event,
             latencyMs: completedAt - roundStartedAt,
             usage: latestUsage,
+            usageAvailable: sawUsage,
           };
           continue;
         }
@@ -276,6 +294,7 @@ async function* streamRound(
       startedAt: roundStartedAt,
       completedAt,
       usage: latestUsage,
+      usageAvailable: sawUsage,
       model,
       finishReason: 'STOP',
     });
@@ -287,6 +306,7 @@ async function* streamRound(
       finishReason: 'STOP',
       latencyMs: completedAt - roundStartedAt,
       usage: latestUsage,
+      usageAvailable: sawUsage,
     };
   }
 
@@ -325,7 +345,11 @@ async function* settleRoundToolCalls(
   // while the executor is still working. Failures are recorded by the registry
   // (via `failedNames`) so the template can surface them; we log here to keep
   // a console trail for live debugging.
-  const uniqueNames = Array.from(new Set(toolCalls.map((c) => c.name)));
+  // Skip empty names — a nameless call (L1) is settled as a synthetic error and
+  // never touches the registry, so there's nothing to preload.
+  const uniqueNames = Array.from(new Set(toolCalls.map((c) => c.name))).filter(
+    (name) => name.length > 0,
+  );
   for (const name of uniqueNames) {
     deps.registry.loadImpl(name).catch((err) => {
       console.warn(`[agent-loop] Failed to preload tool descriptor "${name}":`, err);
@@ -422,6 +446,13 @@ function checkBudgetGuard(deps: AgentLoopDeps): BudgetBreach | null {
     roundsUsed: turn.rounds.length,
     costUsd: turn.costUsd,
   });
+}
+
+// L2: the authoritative count of rounds that actually ran this turn. Sourced
+// from the accountant (one entry per recorded round) rather than the loop
+// index, so budget-exit `turn_complete.rounds` always reflects completed work.
+function completedRounds(deps: AgentLoopDeps): number {
+  return deps.tokenAccountant.currentTurn().rounds.length;
 }
 
 function budgetTerminationEvent(

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { InterruptService } from './interrupt.service';
 
 describe('InterruptService', () => {
@@ -36,22 +36,22 @@ describe('InterruptService', () => {
     await expect(promise).resolves.toEqual({ kind: 'select', selection: { id: 'opt-1' } });
   });
 
-  it('decide() for an unknown callId is a no-op', () => {
+  it('decide() for an unknown callId does not throw or register a pending id', () => {
     expect(() => interrupts.decide('nope', { kind: 'approve' })).not.toThrow();
     expect(interrupts.pendingIds()).toEqual([]);
   });
 
-  it('decide() warns when the callId has no matching pending decision', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    try {
-      interrupts.decide('ghost', { kind: 'approve' });
-      expect(warn).toHaveBeenCalledTimes(1);
-      const message = String(warn.mock.calls[0]?.[0] ?? '');
-      expect(message).toContain('ghost');
-      expect(message).toContain('approve');
-    } finally {
-      warn.mockRestore();
-    }
+  it('buffers a decision that arrives before pendingDecision registers (M5)', async () => {
+    // The UI can render the approval card and a fast/auto approver can dispatch
+    // a decision before settlement calls pendingDecision — the decision must be
+    // honoured on registration, not dropped.
+    interrupts.decide('early', { kind: 'select', selection: { id: 'opt-1' } });
+    expect(interrupts.pendingIds()).toEqual([]);
+
+    const promise = interrupts.pendingDecision('early', new AbortController().signal);
+    await expect(promise).resolves.toEqual({ kind: 'select', selection: { id: 'opt-1' } });
+    // The buffered decision is consumed once — a second registration waits.
+    expect(interrupts.isPending('early')).toBe(false);
   });
 
   it('a fresh pendingDecision() for the same callId supersedes the previous one', async () => {

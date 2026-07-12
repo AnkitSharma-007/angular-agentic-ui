@@ -130,6 +130,34 @@ describe('settleSingleCall — non-interruptive tool', () => {
   });
 });
 
+describe('settleSingleCall — nameless call (L1)', () => {
+  it('short-circuits with a synthetic error without consulting the registry', async () => {
+    const get = vi.fn(() => NON_INTERRUPTIVE);
+    const execute = vi.fn(async () => ({ ok: true }));
+    const deps: ToolExecutionDeps = {
+      registry: { get, execute } as unknown as ToolExecutionDeps['registry'],
+      interrupts: {
+        pendingDecision: vi.fn(async () => ({ kind: 'approve' as const })),
+      } as unknown as ToolExecutionDeps['interrupts'],
+    };
+
+    const settled = await settleSingleCall(
+      call({ callId: 'nameless', name: '' }),
+      't1',
+      new AbortController().signal,
+      deps,
+    );
+
+    expect(get).not.toHaveBeenCalled();
+    expect(execute).not.toHaveBeenCalled();
+    expect(settled.events).toHaveLength(1);
+    expect(settled.events[0]).toMatchObject({ type: 'tool_result', callId: 'nameless' });
+    expect(settled.responseForModel).toMatchObject({
+      error: expect.stringContaining('without a name'),
+    });
+  });
+});
+
 describe('settleSingleCall — interruptive tool, approve branch', () => {
   it('awaits pendingDecision, emits interrupt_resolved, then runs executor', async () => {
     const pendingDecision = vi.fn(

@@ -122,7 +122,11 @@
             </li>
           </ul>
 
-          @if (sel.usage; as u) {
+          @if (sel.usageAvailable === false) {
+            <p class="usage-unavailable">
+              Token usage wasn’t reported for this round, so its cost isn’t counted in the totals.
+            </p>
+          } @else if (sel.usage; as u) {
             <div class="usage-section">
               <span class="section-label">Token usage</span>
               <ul class="usage-rows">

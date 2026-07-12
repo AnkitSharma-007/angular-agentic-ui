@@ -32,6 +32,7 @@ export class TokenAccountantService {
     readonly usage: TokenUsage;
     readonly model: string;
     readonly finishReason: string;
+    readonly usageAvailable?: boolean;
   }): RoundMetrics {
     const latencyMs = Math.max(0, input.completedAt - input.startedAt);
     const round: RoundMetrics = {
@@ -41,6 +42,7 @@ export class TokenAccountantService {
       completedAt: input.completedAt,
       latencyMs,
       usage: input.usage,
+      usageAvailable: input.usageAvailable ?? true,
       model: input.model,
       costUsd: costUsd(input.usage, input.model),
       finishReason: input.finishReason,

@@ -440,6 +440,17 @@
   color: var(--mat-sys-error);
 }
 
+.usage-unavailable {
+  margin: 0;
+  padding: 0.5rem 0.625rem;
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--mat-sys-outline) 55%, transparent);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 @media (max-width: 640px) {
   .summary {
     grid-template-columns: repeat(2, 1fr);

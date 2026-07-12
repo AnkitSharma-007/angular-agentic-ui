@@ -248,6 +248,25 @@ describe('AgentEventStore', () => {
       .toBe('searchFlights');
   });
 
+  it('does not open an empty model turn for a parts-less chunk (M3)', () => {
+    store.appendUserPrompt('Hi');
+    // A lone finishReason chunk (no model parts) arriving before any model
+    // content must NOT seed an empty { role: 'model', parts: [] } entry —
+    // Gemini rejects those on the next round.
+    store.appendChunkToRawHistory({
+      candidates: [{ content: { role: 'model', parts: [] }, finishReason: 'STOP' }],
+    });
+    expect(store.rawHistory().map((h) => h.role)).toEqual(['user']);
+
+    // A real model chunk afterwards opens the model turn as usual.
+    store.appendChunkToRawHistory({
+      candidates: [{ content: { role: 'model', parts: [{ text: 'Hello.' }] } }],
+    });
+    const history = store.rawHistory();
+    expect(history.map((h) => h.role)).toEqual(['user', 'model']);
+    expect((history[1].parts[0] as { text?: string }).text).toBe('Hello.');
+  });
+
   it('appendUserTurn writes a text part followed by inlineData parts', () => {
     store.appendUserTurn({
       text: 'What is this place?',

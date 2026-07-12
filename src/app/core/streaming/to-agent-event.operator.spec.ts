@@ -133,6 +133,38 @@ describe('chunkToEvents — turn lifecycle', () => {
     );
     expect(total).toHaveLength(1);
   });
+
+  it('ignores parts that arrive after the round was finalized (M4)', () => {
+    let state = initialStreamState(TURN);
+    const first = chunkToEvents(
+      { candidates: [{ content: { parts: [{ text: 'done' }] }, finishReason: 'STOP' }] },
+      state,
+    );
+    state = first.state;
+    // A late chunk carrying a tool call after finishReason must NOT emit a
+    // tool_call (it would land after round_complete and break settlement order).
+    const late = chunkToEvents(
+      {
+        candidates: [
+          { content: { parts: [{ functionCall: { name: 'searchFlights', args: {} } }] } },
+        ],
+      },
+      state,
+    );
+    expect(late.events).toEqual([]);
+    const toolCalls = [...first.events, ...late.events].filter((e) => e.type === 'tool_call');
+    expect(toolCalls).toHaveLength(0);
+  });
+});
+
+describe('chunkToEvents — malformed tool call (L1)', () => {
+  it('emits a nameless functionCall with an empty name (settled downstream)', () => {
+    const events = feed([
+      { candidates: [{ content: { parts: [{ functionCall: { args: { q: 1 } } }] } }] },
+    ]);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ type: 'tool_call', name: '', args: { q: 1 } });
+  });
 });
 
 describe('chunkToEvents — Scenario B fixture (thinking + parallel tool calls)', () => {

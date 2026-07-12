@@ -222,7 +222,12 @@ export class AgentEventStore {
     this._rawHistory.update((history) => {
       const last = history.at(-1);
       if (!last || last.role !== 'model') {
-        return [...history, appendChunkToContent(chunk, { role: 'model', parts: [] })];
+        const seeded = appendChunkToContent(chunk, { role: 'model', parts: [] });
+        // M3: a candidate-less / parts-less chunk (e.g. a lone finishReason)
+        // arriving before any model content this round would otherwise seed an
+        // empty `{ role: 'model', parts: [] }` entry — which Gemini rejects if
+        // sent back on the next round. Only open a model turn once it has parts.
+        return seeded.parts.length === 0 ? history : [...history, seeded];
       }
       const updated = appendChunkToContent(chunk, last);
       return [...history.slice(0, -1), updated];
