@@ -52,6 +52,52 @@ describe('proposeToolDescriptor', () => {
     ).toBe(false);
   });
 
+  it('rejects a non-identifier tool name (M9)', () => {
+    expect(
+      proposeToolDescriptor.argsSchema.safeParse({ ...VALID_DRAFT, name: 'has space' }).success,
+    ).toBe(false);
+    expect(
+      proposeToolDescriptor.argsSchema.safeParse({ ...VALID_DRAFT, name: '1startsWithDigit' })
+        .success,
+    ).toBe(false);
+  });
+
+  it('rejects a non-identifier parameter name (M9)', () => {
+    const parsed = proposeToolDescriptor.argsSchema.safeParse({
+      ...VALID_DRAFT,
+      parameters: [{ name: 'not a name', type: 'string', description: 'd', required: true }],
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects an over-long tool name (M9)', () => {
+    const parsed = proposeToolDescriptor.argsSchema.safeParse({
+      ...VALID_DRAFT,
+      name: 'a'.repeat(65),
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it('rejects too many parameters (M9)', () => {
+    const parameters = Array.from({ length: 21 }, (_, i) => ({
+      name: `p${i}`,
+      type: 'string' as const,
+      description: 'd',
+      required: false,
+    }));
+    expect(proposeToolDescriptor.argsSchema.safeParse({ ...VALID_DRAFT, parameters }).success).toBe(
+      false,
+    );
+  });
+
+  it('rejects an oversized response template (M9)', () => {
+    const parsed = proposeToolDescriptor.argsSchema.safeParse({
+      ...VALID_DRAFT,
+      responseTemplate: 'x'.repeat(8 * 1024 + 1),
+    });
+    expect(parsed.success).toBe(false);
+  });
+
   it('has a defensive executor that never claims registration', async () => {
     const result = await proposeToolDescriptor.execute(VALID_DRAFT, {
       callId: 'c1',

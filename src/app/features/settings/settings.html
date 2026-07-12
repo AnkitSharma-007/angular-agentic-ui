@@ -75,6 +75,14 @@
         Session-only keys are wiped when the tab closes. Encrypted-local keys
         survive across sessions and require your passphrase to unlock.
       </p>
+      @if (apiKey.sessionPersistenceFailed()) {
+        <p class="card-warning" role="status">
+          <mat-icon aria-hidden="true">warning</mat-icon>
+          This browser blocked session storage, so your key is only held in
+          memory — it won't survive a page reload. Re-enter it after refreshing,
+          or choose "Remember on this device" to store it encrypted.
+        </p>
+      }
     </div>
     <div class="card-actions">
       <button mat-stroked-button color="warn" (click)="clearKey()" [disabled]="!apiKey.hasKey()">

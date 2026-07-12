@@ -19,6 +19,7 @@ import { InterruptService } from '../../../core/registry/interrupt.service';
 import { CustomToolsService } from '../../../core/custom-tools/custom-tools.service';
 import {
   applyResponseTemplate,
+  clampToolDraft,
   validateParameterName,
   validateToolName,
   type CustomToolParameterType,
@@ -99,17 +100,22 @@ export class ProposeToolCardComponent {
   // Editable copy of the proposed draft as a Signal Forms model. `linkedSignal`
   // re-seeds from the incoming args (fixed for a given call) yet stays writable
   // so the presenter can tweak the definition live before approving.
-  protected readonly draftModel = linkedSignal<DraftForm>(() => ({
-    name: this.args().name,
-    description: this.args().description,
-    responseTemplate: this.args().responseTemplate,
-    parameters: this.args().parameters.map((p) => ({
-      name: p.name,
-      type: p.type,
-      description: p.description,
-      required: p.required,
-    })),
-  }));
+  protected readonly draftModel = linkedSignal<DraftForm>(() => {
+    // Bound the untrusted, model-authored proposal to safe sizes before it is
+    // ever rendered/edited (M9). Approval is still gated by the form validators.
+    const clamped = clampToolDraft(this.args());
+    return {
+      name: clamped.name,
+      description: clamped.description,
+      responseTemplate: clamped.responseTemplate,
+      parameters: clamped.parameters.map((p) => ({
+        name: p.name,
+        type: p.type,
+        description: p.description,
+        required: p.required,
+      })),
+    };
+  });
 
   protected readonly draft = form(this.draftModel, (p) => {
     validate(p.name, ({ value }) => {

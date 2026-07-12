@@ -88,6 +88,26 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.card-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+
+  mat-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
 .card-actions {
   display: flex;
   justify-content: flex-end;

@@ -87,7 +87,7 @@
               autocomplete="new-password"
               spellcheck="false"
               [formField]="f.passphrase"
-              placeholder="At least 6 characters"
+              placeholder="At least 12 characters"
             />
             <button
               mat-icon-button
@@ -105,6 +105,28 @@
             }
           </mat-form-field>
 
+          @if (model().passphrase.length > 0) {
+            <div class="passphrase-strength" [attr.data-score]="passphraseStrength().score">
+              <div
+                class="strength-track"
+                role="meter"
+                aria-label="Passphrase strength"
+                [attr.aria-valuetext]="passphraseStrength().label"
+                [attr.aria-valuenow]="passphraseStrength().percent"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <span class="strength-fill" [style.width.%]="passphraseStrength().percent"></span>
+              </div>
+              <p class="strength-meta">
+                <span class="strength-label">{{ passphraseStrength().label }}</span>
+                @if (passphraseStrength().hint) {
+                  <span class="strength-hint">{{ passphraseStrength().hint }}</span>
+                }
+              </p>
+            </div>
+          }
+
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Confirm passphrase</mat-label>
             <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
@@ -121,7 +143,7 @@
           </mat-form-field>
         }
 
-        @if (statusKind === 'tested-ok') {
+        @if (connectionVerified()) {
           <div class="banner success" role="status">
             <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
             Connection works. You can save.

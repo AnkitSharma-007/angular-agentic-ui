@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isDisplayableAttachmentMime,
   kindFromMime,
   normalizeUserTurnInput,
   toDataUrl,
@@ -45,5 +46,21 @@ describe('kindFromMime', () => {
     expect(kindFromMime('audio/webm')).toBe('audio');
     expect(kindFromMime('image/png')).toBe('image');
     expect(kindFromMime('application/octet-stream')).toBe('image');
+  });
+});
+
+describe('isDisplayableAttachmentMime (L12)', () => {
+  it('allows safe raster image and audio types', () => {
+    expect(isDisplayableAttachmentMime('image/jpeg')).toBe(true);
+    expect(isDisplayableAttachmentMime('IMAGE/PNG')).toBe(true);
+    expect(isDisplayableAttachmentMime(' image/webp ')).toBe(true);
+    expect(isDisplayableAttachmentMime('audio/webm')).toBe(true);
+  });
+
+  it('rejects script-capable or arbitrary MIME types', () => {
+    expect(isDisplayableAttachmentMime('image/svg+xml')).toBe(false);
+    expect(isDisplayableAttachmentMime('text/html')).toBe(false);
+    expect(isDisplayableAttachmentMime('application/octet-stream')).toBe(false);
+    expect(isDisplayableAttachmentMime('')).toBe(false);
   });
 });

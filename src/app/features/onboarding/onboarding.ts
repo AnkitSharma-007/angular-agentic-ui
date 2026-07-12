@@ -6,7 +6,7 @@ import {
   computed,
   output,
 } from '@angular/core';
-import { form, required, minLength, FormField } from '@angular/forms/signals';
+import { form, required, minLength, validate, FormField } from '@angular/forms/signals';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,6 +20,11 @@ import { ApiKeyService } from '../../core/services/api-key.service';
 import { GeminiService } from '../../core/services/gemini.service';
 import { APP_CONFIG } from '../../core/app-config';
 import { DecryptionFailedError } from '../../core/crypto/webcrypto.helpers';
+import {
+  MIN_PASSPHRASE_LENGTH,
+  isCommonPassphrase,
+  scorePassphrase,
+} from '../../core/crypto/passphrase-strength';
 import { humanizeGeminiError } from '../../core/errors';
 
 type Status =
@@ -74,17 +79,40 @@ export class OnboardingComponent {
   protected readonly f = form(this.model, (p) => {
     required(p.key, { message: 'Paste your Gemini API key.' });
     required(p.passphrase, {
-      message: 'Choose a passphrase (at least 6 characters).',
+      message: `Choose a passphrase (at least ${MIN_PASSPHRASE_LENGTH} characters).`,
       when: () => this.model().remember,
     });
-    minLength(p.passphrase, 6, {
-      message: 'Use at least 6 characters.',
+    minLength(p.passphrase, MIN_PASSPHRASE_LENGTH, {
+      message: `Use at least ${MIN_PASSPHRASE_LENGTH} characters.`,
       when: () => this.model().remember,
+    });
+    // Block obviously-guessable passphrases outright — the encrypted blob is
+    // portable, so a weak passphrase is the whole ballgame for offline guessing.
+    validate(p.passphrase, ({ value }) => {
+      if (!this.model().remember) return null;
+      return isCommonPassphrase(value())
+        ? { kind: 'commonPassphrase', message: 'Too common — choose a more unique passphrase.' }
+        : null;
     });
   });
 
   protected readonly status = signal<Status>({ kind: 'idle' });
   protected readonly showPassphrase = signal(false);
+
+  // The exact key value that last passed `testConnection`. Comparing it against
+  // the current input means editing the key after a successful test invalidates
+  // the "verified" state, so the user must re-test before Save re-enables (H7).
+  private readonly testedKey = signal<string | null>(null);
+
+  protected readonly connectionVerified = computed(() => {
+    const tested = this.testedKey();
+    return tested !== null && tested === this.model().key.trim();
+  });
+
+  // Strength meter for the persistence passphrase (M8). Advisory UX only.
+  protected readonly passphraseStrength = computed(() =>
+    scorePassphrase(this.model().passphrase),
+  );
 
   protected readonly mode = computed<'unlock' | 'setup'>(() =>
     this.apiKey.hasLockedBlob() ? 'unlock' : 'setup',
@@ -110,6 +138,8 @@ export class OnboardingComponent {
   protected readonly canSave = computed(() => {
     const s = this.status();
     if (s.kind === 'saving' || s.kind === 'testing' || s.kind === 'unlocking') return false;
+    // H7: never persist a key we haven't confirmed works against the live API.
+    if (!this.connectionVerified()) return false;
     if (this.f().invalid()) return false;
     if (this.passphraseMismatch()) return false;
     return true;
@@ -135,8 +165,10 @@ export class OnboardingComponent {
     this.status.set({ kind: 'testing' });
     try {
       await this.gemini.testConnection(key);
+      this.testedKey.set(key);
       this.status.set({ kind: 'tested-ok' });
     } catch (err) {
+      this.testedKey.set(null);
       this.status.set({ kind: 'error', message: humanizeGeminiError(err) });
     }
   }
@@ -145,6 +177,9 @@ export class OnboardingComponent {
     const { key: rawKey, remember, passphrase } = this.model();
     const key = rawKey.trim();
     if (!key) return;
+    // H7 defense-in-depth: the button is disabled when unverified, but never
+    // persist a key that hasn't passed a live connection test.
+    if (!this.connectionVerified()) return;
     this.status.set({ kind: 'saving' });
     try {
       if (remember) {

@@ -8,6 +8,7 @@ import {
   encryptString,
   encryptWithKey,
   generateSessionKek,
+  isSupportedEncryptedPayload,
 } from '../crypto/webcrypto.helpers';
 import { deleteSessionKek, getSessionKek, putSessionKek } from '../crypto/session-key-store';
 
@@ -34,6 +35,13 @@ export class ApiKeyService {
   readonly hasKey = computed(() => this._key() !== null);
 
   readonly hasLockedBlob = signal<boolean>(this.readLockedBlob() !== null);
+
+  // True when the session key is held in memory but could NOT be persisted to
+  // sessionStorage (quota, private browsing, storage disabled). The key still
+  // works for this tab, but will NOT survive a reload — surfaced so the UI can
+  // warn instead of silently losing it (L3).
+  private readonly _sessionPersistenceFailed = signal(false);
+  readonly sessionPersistenceFailed = this._sessionPersistenceFailed.asReadonly();
 
   // Rehydrate the session key from storage. Async because the KEK lives in
   // IndexedDB and decryption is async — an APP_INITIALIZER awaits this so the
@@ -113,18 +121,32 @@ export class ApiKeyService {
       const kek = await generateSessionKek();
       await putSessionKek(kek);
       const envelope = await encryptWithKey(kek, key);
-      safeWrite(() => sessionStorage.setItem(SESSION_ENVELOPE_KEY, JSON.stringify(envelope)));
+      const wrote = safeWrite(() =>
+        sessionStorage.setItem(SESSION_ENVELOPE_KEY, JSON.stringify(envelope)),
+      );
       safeWrite(() => sessionStorage.removeItem(LEGACY_SESSION_KEY));
+      this.setSessionPersistenceFailed(!wrote);
     } catch {
-      safeWrite(() => sessionStorage.setItem(LEGACY_SESSION_KEY, key));
+      const wrote = safeWrite(() => sessionStorage.setItem(LEGACY_SESSION_KEY, key));
       safeWrite(() => sessionStorage.removeItem(SESSION_ENVELOPE_KEY));
       await deleteSessionKek().catch(() => undefined);
+      this.setSessionPersistenceFailed(!wrote);
+    }
+  }
+
+  private setSessionPersistenceFailed(failed: boolean): void {
+    this._sessionPersistenceFailed.set(failed);
+    if (failed) {
+      console.warn(
+        '[api-key] Could not persist the session key to sessionStorage; it will not survive a reload.',
+      );
     }
   }
 
   private async clearSessionPersistence(): Promise<void> {
     safeWrite(() => sessionStorage.removeItem(SESSION_ENVELOPE_KEY));
     safeWrite(() => sessionStorage.removeItem(LEGACY_SESSION_KEY));
+    this._sessionPersistenceFailed.set(false);
     await deleteSessionKek().catch(() => undefined);
   }
 
@@ -151,18 +173,25 @@ export class ApiKeyService {
     try {
       const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (!raw) return null;
-      const parsed = JSON.parse(raw) as EncryptedPayloadV1;
-      return parsed.version === 1 && parsed.algorithm === 'AES-GCM' ? parsed : null;
+      const parsed: unknown = JSON.parse(raw);
+      // Reject tampered kdf/iterations here too so a poisoned blob is treated as
+      // "no key" (setup screen) rather than reaching the unlock/derive path (M7).
+      return isSupportedEncryptedPayload(parsed) ? parsed : null;
     } catch {
       return null;
     }
   }
 }
 
-function safeWrite(action: () => void): void {
+// Best-effort storage write. Returns whether it succeeded so callers can react
+// to a failure (e.g. warn that a session key won't survive a reload) rather
+// than swallowing it silently (L3).
+function safeWrite(action: () => void): boolean {
   try {
     action();
+    return true;
   } catch {
     // storage unavailable (quota, private browsing) — best-effort only
+    return false;
   }
 }

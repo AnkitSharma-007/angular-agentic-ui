@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   applyResponseTemplate,
+  clampToolDraft,
+  MAX_PARAMETERS,
+  MAX_RESPONSE_TEMPLATE_BYTES,
+  MAX_TOOL_DESCRIPTION,
+  MAX_TOOL_NAME,
   validateParameterName,
   validateToolName,
 } from './custom-tool.types';
@@ -90,5 +95,71 @@ describe('applyResponseTemplate', () => {
     );
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.value).toEqual({ msg: 'hello "world"' });
+  });
+
+  it('drops prototype-polluting keys from the parsed output (L13)', () => {
+    const result = applyResponseTemplate(
+      '{"__proto__": {"polluted": true}, "constructor": 1, "safe": {{v}}}',
+      { v: 2 },
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const value = result.value as Record<string, unknown>;
+      expect(value['safe']).toBe(2);
+      expect(Object.prototype.hasOwnProperty.call(value, '__proto__')).toBe(false);
+      expect(Object.prototype.hasOwnProperty.call(value, 'constructor')).toBe(false);
+      // Object.prototype is untouched.
+      expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
+    }
+  });
+});
+
+describe('clampToolDraft', () => {
+  it('bounds oversized strings, param count, and template bytes (M9)', () => {
+    const clamped = clampToolDraft({
+      name: 'n'.repeat(MAX_TOOL_NAME + 50),
+      description: 'd'.repeat(MAX_TOOL_DESCRIPTION + 50),
+      responseTemplate: 'x'.repeat(MAX_RESPONSE_TEMPLATE_BYTES + 100),
+      parameters: Array.from({ length: MAX_PARAMETERS + 10 }, (_, i) => ({
+        name: `p${i}`,
+        type: 'string' as const,
+        description: 'ok',
+        required: true,
+      })),
+    });
+
+    expect(clamped.name.length).toBe(MAX_TOOL_NAME);
+    expect(clamped.description.length).toBe(MAX_TOOL_DESCRIPTION);
+    expect(new TextEncoder().encode(clamped.responseTemplate).length).toBeLessThanOrEqual(
+      MAX_RESPONSE_TEMPLATE_BYTES,
+    );
+    expect(clamped.parameters.length).toBe(MAX_PARAMETERS);
+  });
+
+  it('coerces malformed input to a safe empty-ish draft (M9)', () => {
+    const clamped = clampToolDraft({
+      name: 123,
+      parameters: 'not-an-array',
+      responseTemplate: null,
+    });
+    expect(clamped.name).toBe('');
+    expect(clamped.description).toBe('');
+    expect(clamped.parameters).toEqual([]);
+    expect(clamped.responseTemplate).toBe('');
+  });
+
+  it('normalizes a bad parameter type to string and coerces required (M9)', () => {
+    const clamped = clampToolDraft({
+      name: 'ok',
+      description: 'ok',
+      responseTemplate: '{}',
+      parameters: [{ name: 'p', type: 'date', description: 5, required: 'yes' }],
+    });
+    expect(clamped.parameters[0]).toEqual({
+      name: 'p',
+      type: 'string',
+      description: '',
+      required: false,
+    });
   });
 });

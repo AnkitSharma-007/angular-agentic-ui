@@ -6,6 +6,14 @@ const SALT_BYTES = 16;
 const IV_BYTES = 12;
 const KEY_BITS = 256;
 
+// Sane bounds for the PBKDF2 iteration count read back from persisted (and thus
+// user-tamperable) storage. A value below the floor weakens the KDF; a value far
+// above the ceiling would freeze the UI thread on unlock (`deriveKey` is
+// synchronous work). Anything outside this window is treated as a corrupt/
+// unsupported blob rather than executed. (M7)
+export const MIN_PBKDF2_ITERATIONS = 100_000;
+export const MAX_PBKDF2_ITERATIONS = 1_000_000;
+
 export interface EncryptedPayloadV1 {
   readonly version: 1;
   readonly algorithm: 'AES-GCM';
@@ -29,6 +37,30 @@ export class DecryptionFailedError extends Error {
     this.name = 'DecryptionFailedError';
     if (cause instanceof Error) this.cause = cause;
   }
+}
+
+// Validate the shape *and* the security-relevant fields of a persisted envelope
+// before we ever feed it to `deriveKey`. Rejects tampered `kdf`/`iterations`
+// (M7) so a poisoned localStorage row can neither weaken the KDF nor hang the
+// UI thread with an absurd iteration count.
+export function isSupportedEncryptedPayload(value: unknown): value is EncryptedPayloadV1 {
+  if (!value || typeof value !== 'object') return false;
+  const p = value as Partial<EncryptedPayloadV1>;
+  return (
+    p.version === 1 &&
+    p.algorithm === 'AES-GCM' &&
+    p.kdf === 'PBKDF2-SHA256' &&
+    typeof p.iterations === 'number' &&
+    Number.isInteger(p.iterations) &&
+    p.iterations >= MIN_PBKDF2_ITERATIONS &&
+    p.iterations <= MAX_PBKDF2_ITERATIONS &&
+    typeof p.salt === 'string' &&
+    p.salt.length > 0 &&
+    typeof p.iv === 'string' &&
+    p.iv.length > 0 &&
+    typeof p.ciphertext === 'string' &&
+    p.ciphertext.length > 0
+  );
 }
 
 function assertSubtle(): SubtleCrypto {
@@ -112,6 +144,11 @@ export async function decryptString(
   passphrase: string,
 ): Promise<string> {
   const subtle = assertSubtle();
+  // Guard before any key derivation so a tampered iteration count can't stall
+  // the UI thread and an unsupported kdf can't slip through (M7).
+  if (!isSupportedEncryptedPayload(payload)) {
+    throw new DecryptionFailedError();
+  }
   try {
     const salt = fromBase64(payload.salt);
     const iv = fromBase64(payload.iv);

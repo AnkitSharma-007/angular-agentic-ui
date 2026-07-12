@@ -4,6 +4,7 @@ import { appendChunkToContent, type HistoryContent } from './raw-history.reducer
 import type { GeminiChunk, GeminiPart } from './to-agent-event.operator';
 import {
   EMPTY_USER_TURN_VIEW,
+  isDisplayableAttachmentMime,
   kindFromMime,
   toInlineDataPart,
   type UserTurnAttachmentView,
@@ -267,7 +268,10 @@ function partsToUserTurnView(parts: readonly GeminiPart[]): UserTurnView {
     const inline = (part as Record<string, unknown>)['inlineData'] as
       | { readonly mimeType?: string; readonly data?: string }
       | undefined;
-    if (inline?.mimeType && inline.data) {
+    // Never build a `data:` URL from an untrusted/stored MIME outside the
+    // display allowlist — a poisoned replay could otherwise smuggle e.g.
+    // `image/svg+xml` or `text/html` into an <img>/anchor. (L12)
+    if (inline?.mimeType && inline.data && isDisplayableAttachmentMime(inline.mimeType)) {
       attachments.push({
         kind: kindFromMime(inline.mimeType),
         mimeType: inline.mimeType,

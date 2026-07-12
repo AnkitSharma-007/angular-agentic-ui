@@ -295,6 +295,22 @@ describe('AgentEventStore', () => {
     ]);
   });
 
+  it('drops an attachment with a non-allowlisted display MIME (L12)', () => {
+    // A poisoned/edited stored turn: an inlineData part whose MIME is not a safe
+    // displayable type must not be turned into a data: URL and rendered.
+    store.appendUserTurn({
+      text: 'look at this',
+      attachments: [
+        { id: 's1', kind: 'image', mimeType: 'image/svg+xml', dataBase64: 'PHN2Zy8+', sizeBytes: 8 },
+        { id: 'a1', kind: 'image', mimeType: 'image/jpeg', dataBase64: 'QUJD', sizeBytes: 3 },
+      ],
+    });
+    const view = store.currentUserTurn();
+    expect(view.attachments).toEqual([
+      { kind: 'image', mimeType: 'image/jpeg', dataUrl: 'data:image/jpeg;base64,QUJD' },
+    ]);
+  });
+
   it('bumpStats accumulates chunk/part/signedPart counts', () => {
     store.beginTurn('t1');
     store.bumpStats({ chunks: 1, parts: 2, signedParts: 1 });

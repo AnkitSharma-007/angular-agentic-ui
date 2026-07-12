@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { IDBFactory } from 'fake-indexeddb';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiKeyService } from './api-key.service';
 import { DecryptionFailedError } from '../crypto/webcrypto.helpers';
 import { deleteSessionKek, getSessionKek } from '../crypto/session-key-store';
@@ -59,6 +59,27 @@ describe('ApiKeyService', () => {
     const kek = await getSessionKek();
     expect(kek).toBeInstanceOf(CryptoKey);
     expect(kek!.extractable).toBe(false);
+  });
+
+  it('flags session persistence failure when sessionStorage writes throw (L3)', async () => {
+    const service = TestBed.inject(ApiKeyService);
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('QuotaExceededError');
+    });
+
+    await service.setForSession('sk-nopersist');
+
+    // The key still works this tab, but the failure is now observable (not swallowed).
+    expect(service.key()).toBe('sk-nopersist');
+    expect(service.sessionPersistenceFailed()).toBe(true);
+
+    spy.mockRestore();
+  });
+
+  it('does not flag persistence failure on a normal session save (L3)', async () => {
+    const service = TestBed.inject(ApiKeyService);
+    await service.setForSession('sk-ok');
+    expect(service.sessionPersistenceFailed()).toBe(false);
   });
 
   it('restore() rehydrates the session key from the envelope + KEK across a reload', async () => {
@@ -180,6 +201,43 @@ describe('ApiKeyService — encrypt + decrypt round-trip', () => {
     expect(payload.salt).toBeTruthy();
     expect(payload.iv).toBeTruthy();
     expect(payload.ciphertext).toBeTruthy();
+  });
+
+  it('treats a blob with an absurdly high iteration count as absent (M7)', async () => {
+    const service = TestBed.inject(ApiKeyService);
+    await service.setEncryptedLocal('sk-secret', 'correct horse battery staple');
+
+    const payload = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    payload.iterations = 5_000_000_000; // would freeze the UI thread on derive
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
+
+    const fresh = freshService();
+    expect(fresh.hasLockedBlob()).toBe(false);
+    await expect(fresh.unlockLocal('correct horse battery staple')).rejects.toThrow(
+      /No encrypted key stored/,
+    );
+  });
+
+  it('treats a blob with a too-low iteration count as absent (M7)', async () => {
+    const service = TestBed.inject(ApiKeyService);
+    await service.setEncryptedLocal('sk-secret', 'correct horse battery staple');
+
+    const payload = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    payload.iterations = 10; // far below the floor → weakened KDF
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
+
+    expect(freshService().hasLockedBlob()).toBe(false);
+  });
+
+  it('treats a blob with an unsupported kdf as absent (M7)', async () => {
+    const service = TestBed.inject(ApiKeyService);
+    await service.setEncryptedLocal('sk-secret', 'correct horse battery staple');
+
+    const payload = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)!);
+    payload.kdf = 'PBKDF2-MD5';
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(payload));
+
+    expect(freshService().hasLockedBlob()).toBe(false);
   });
 
   it('setEncryptedLocal() switches storage mode to encrypted-local and clears the session envelope', async () => {

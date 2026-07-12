@@ -53,3 +53,31 @@ export function toDataUrl(a: InlineAttachment): string {
 export function kindFromMime(mimeType: string): AttachmentKind {
   return mimeType.startsWith('audio/') ? 'audio' : 'image';
 }
+
+// MIME types we are willing to turn into a `data:` URL and render. Upload only
+// ever produces `image/jpeg`, but replays are user-editable/portable, so the
+// display path must not trust a stored MIME (e.g. `text/html`, `image/svg+xml`)
+// that could be abused via a `data:` URL. Anything outside this allowlist is
+// dropped from the echoed user turn rather than rendered. (L12)
+const DISPLAYABLE_IMAGE_MIME = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+]);
+
+const DISPLAYABLE_AUDIO_MIME = new Set([
+  'audio/webm',
+  'audio/mp4',
+  'audio/mpeg',
+  'audio/ogg',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/aac',
+]);
+
+export function isDisplayableAttachmentMime(mimeType: string): boolean {
+  const mime = mimeType.trim().toLowerCase();
+  return DISPLAYABLE_IMAGE_MIME.has(mime) || DISPLAYABLE_AUDIO_MIME.has(mime);
+}

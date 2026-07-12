@@ -1,22 +1,13 @@
-import { z } from 'zod';
 import type { ToolDescriptor } from '../../../core/registry/tool-descriptor';
+import { customToolDraftSchema } from '../../../core/custom-tools/custom-tool.types';
 import { ProposeToolCardComponent } from './propose-tool-card';
 import { PROPOSE_TOOL_META } from './propose-tool.manifest';
 import type { ProposeToolArgs, ProposeToolResult } from './propose-tool.types';
 
-const parameterSchema = z.object({
-  name: z.string().min(1),
-  type: z.enum(['string', 'number', 'boolean']),
-  description: z.string().min(1),
-  required: z.boolean(),
-});
-
-const proposeToolArgsSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  parameters: z.array(parameterSchema).max(12),
-  responseTemplate: z.string().min(1),
-});
+// Model-authored proposals are validated with the same strict contract as the
+// tool builder: identifier-shaped tool/parameter names, bounded strings, a
+// parameter cap, and a byte-capped response template. (M9)
+const proposeToolArgsSchema = customToolDraftSchema;
 
 // Defensive stub — never actually invoked. proposeTool is interruptive, so the
 // user's approve/reject/select decision arrives via InterruptService and the

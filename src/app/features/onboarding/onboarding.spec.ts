@@ -17,11 +17,15 @@ interface OnboardingInternals {
   readonly model: { update: (fn: (m: OnboardingForm) => OnboardingForm) => void };
   readonly canTest: () => boolean;
   readonly canSave: () => boolean;
+  readonly connectionVerified: () => boolean;
   test(): Promise<void>;
   save(): Promise<void>;
   statusKind: string;
   errorMessage: string | null;
 }
+
+// A passphrase that clears the ≥12 length floor and isn't on the common list.
+const STRONG_PASSPHRASE = 'correct-horse-battery-staple';
 
 function patch(inst: OnboardingInternals, next: Partial<OnboardingForm>): void {
   inst.model.update((m) => ({ ...m, ...next }));
@@ -57,25 +61,82 @@ describe('OnboardingComponent', () => {
     expect(inst.canTest()).toBe(true);
   });
 
-  it('canSave gates passphrase length and confirmation when remember=true', async () => {
+  it('canSave requires a verified connection before anything else (H7)', async () => {
+    const gemini = TestBed.inject(GeminiService);
+    vi.spyOn(gemini, 'testConnection').mockResolvedValue(true);
+
     const fixture = TestBed.createComponent(OnboardingComponent);
     await fixture.whenStable();
     const inst = fixture.componentInstance as unknown as OnboardingInternals;
 
     patch(inst, { key: 'sk-1234' });
+    // A valid key that has not been tested cannot be saved.
+    expect(inst.canSave()).toBe(false);
+
+    await inst.test();
+    expect(inst.connectionVerified()).toBe(true);
+    expect(inst.canSave()).toBe(true);
+  });
+
+  it('editing the key after a successful test re-locks Save (H7)', async () => {
+    const gemini = TestBed.inject(GeminiService);
+    vi.spyOn(gemini, 'testConnection').mockResolvedValue(true);
+
+    const fixture = TestBed.createComponent(OnboardingComponent);
+    await fixture.whenStable();
+    const inst = fixture.componentInstance as unknown as OnboardingInternals;
+
+    patch(inst, { key: 'sk-1234' });
+    await inst.test();
+    expect(inst.canSave()).toBe(true);
+
+    patch(inst, { key: 'sk-changed' });
+    expect(inst.connectionVerified()).toBe(false);
+    expect(inst.canSave()).toBe(false);
+  });
+
+  it('canSave gates passphrase length and confirmation when remember=true (M8)', async () => {
+    const gemini = TestBed.inject(GeminiService);
+    vi.spyOn(gemini, 'testConnection').mockResolvedValue(true);
+
+    const fixture = TestBed.createComponent(OnboardingComponent);
+    await fixture.whenStable();
+    const inst = fixture.componentInstance as unknown as OnboardingInternals;
+
+    patch(inst, { key: 'sk-1234' });
+    await inst.test();
     expect(inst.canSave()).toBe(true);
 
     patch(inst, { remember: true });
     expect(inst.canSave()).toBe(false);
 
-    patch(inst, { passphrase: 'short', passphraseConfirm: 'short' });
+    // 10 chars — below the ≥12 floor.
+    patch(inst, { passphrase: 'shortphrase', passphraseConfirm: 'shortphrase' });
     expect(inst.canSave()).toBe(false);
 
-    patch(inst, { passphrase: 'longenough', passphraseConfirm: 'different' });
+    patch(inst, { passphrase: STRONG_PASSPHRASE, passphraseConfirm: 'different-value' });
     expect(inst.canSave()).toBe(false);
 
-    patch(inst, { passphraseConfirm: 'longenough' });
+    patch(inst, { passphraseConfirm: STRONG_PASSPHRASE });
     expect(inst.canSave()).toBe(true);
+  });
+
+  it('canSave rejects a common passphrase even when long enough (M8)', async () => {
+    const gemini = TestBed.inject(GeminiService);
+    vi.spyOn(gemini, 'testConnection').mockResolvedValue(true);
+
+    const fixture = TestBed.createComponent(OnboardingComponent);
+    await fixture.whenStable();
+    const inst = fixture.componentInstance as unknown as OnboardingInternals;
+
+    patch(inst, { key: 'sk-1234' });
+    await inst.test();
+    patch(inst, {
+      remember: true,
+      passphrase: 'password1234',
+      passphraseConfirm: 'password1234',
+    });
+    expect(inst.canSave()).toBe(false);
   });
 
   it('test() resolves to tested-ok on success', async () => {
@@ -105,7 +166,24 @@ describe('OnboardingComponent', () => {
     expect(inst.errorMessage).toMatch(/Authentication failed/);
   });
 
-  it('save() (session mode) stores the key in ApiKeyService', async () => {
+  it('save() (session mode) stores the key in ApiKeyService after a verified test', async () => {
+    const apiKey = TestBed.inject(ApiKeyService);
+    const gemini = TestBed.inject(GeminiService);
+    vi.spyOn(gemini, 'testConnection').mockResolvedValue(true);
+
+    const fixture = TestBed.createComponent(OnboardingComponent);
+    await fixture.whenStable();
+    const inst = fixture.componentInstance as unknown as OnboardingInternals;
+
+    patch(inst, { key: 'sk-1234' });
+    await inst.test();
+    await inst.save();
+
+    expect(apiKey.key()).toBe('sk-1234');
+    expect(apiKey.storage()).toBe('session');
+  });
+
+  it('save() is a no-op until the connection is verified (H7)', async () => {
     const apiKey = TestBed.inject(ApiKeyService);
 
     const fixture = TestBed.createComponent(OnboardingComponent);
@@ -115,7 +193,6 @@ describe('OnboardingComponent', () => {
     patch(inst, { key: 'sk-1234' });
     await inst.save();
 
-    expect(apiKey.key()).toBe('sk-1234');
-    expect(apiKey.storage()).toBe('session');
+    expect(apiKey.key()).toBeNull();
   });
 });
