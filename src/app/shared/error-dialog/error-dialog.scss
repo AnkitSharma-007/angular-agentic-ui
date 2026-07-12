@@ -1,0 +1,76 @@
+.error-dialog {
+  width: min(92vw, 440px);
+  padding: 1.25rem;
+  border-radius: 16px;
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
+  box-shadow: 0 24px 60px -24px var(--app-shadow-color, rgba(0, 0, 0, 0.5));
+}
+
+.dialog-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.dialog-icon {
+  font-size: 24px;
+}
+
+.dialog-title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.dialog-message {
+  margin: 0 0 1rem;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.dialog-details {
+  margin: 0 0 1rem;
+
+  summary {
+    cursor: pointer;
+    font-size: 12.5px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  pre {
+    margin: 0.5rem 0 0;
+    padding: 0.6rem 0.7rem;
+    max-height: 180px;
+    overflow: auto;
+    border-radius: 8px;
+    background-color: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
+    border: 1px solid var(--mat-sys-outline-variant);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.error-dialog--error .dialog-icon {
+  color: var(--mat-sys-error);
+}
+.error-dialog--warn .dialog-icon {
+  color: var(--mat-sys-secondary);
+}
+.error-dialog--question .dialog-icon {
+  color: var(--mat-sys-primary);
+}

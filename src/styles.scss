@@ -56,12 +56,12 @@ body::before {
   background:
     radial-gradient(
       ellipse 600px 400px at 15% 0%,
-      color-mix(in srgb, #7C5CFF 14%, transparent) 0%,
+      color-mix(in srgb, #7c5cff 14%, transparent) 0%,
       transparent 60%
     ),
     radial-gradient(
       ellipse 700px 500px at 85% 100%,
-      color-mix(in srgb, #13D0C9 12%, transparent) 0%,
+      color-mix(in srgb, #13d0c9 12%, transparent) 0%,
       transparent 60%
     );
   opacity: 0.7;
@@ -124,7 +124,9 @@ a:not(.mat-mdc-button-base):hover {
   }
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -267,8 +269,12 @@ textarea:focus-visible {
 }
 
 @keyframes tool-shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .eyebrow {
@@ -307,13 +313,30 @@ textarea:focus-visible {
 }
 
 @keyframes pulse-dot {
-  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-primary) 65%, transparent); }
-  70%  { box-shadow: 0 0 0 10px color-mix(in srgb, var(--mat-sys-primary) 0%, transparent); }
-  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-primary) 0%, transparent); }
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-primary) 65%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--mat-sys-primary) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-primary) 0%, transparent);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .pulse-dot {
     animation: none;
   }
+}
+
+// CDK Dialog (see DialogService). Ensure the backdrop dims and the panel has no
+// default chrome regardless of which overlay stylesheet is present; the dialog
+// component owns its own surface styling.
+.atlas-dialog-backdrop {
+  background-color: color-mix(in srgb, #000 48%, transparent);
+}
+
+.atlas-dialog-panel .cdk-dialog-container {
+  outline: none;
 }

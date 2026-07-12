@@ -20,7 +20,6 @@ import { provideTools } from './core/registry/register-tools';
 import { ApiKeyService } from './core/services/api-key.service';
 import { GlobalErrorHandler } from './core/errors/global-error-handler';
 import { ErrorService } from './core/errors/error.service';
-import { AppShellErrorService } from './core/errors/app-shell-error.service';
 import { LOG_SINKS, ConsoleLogSink, RingBufferLogSink } from './core/logging/log-sink';
 
 export const appConfig: ApplicationConfig = {
@@ -33,13 +32,12 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withViewTransitions(),
       // Lazy-route chunk loads can fail on a stale deploy or a network blip.
-      // Normalize + log, then surface a reload prompt via the shell boundary.
+      // ErrorService classifies these as chunk-load errors and routes them to
+      // the shell boundary with a reload prompt.
       withNavigationErrorHandler((event: NavigationError) => {
-        const appError = inject(ErrorService).handle(event.error, {
-          source: 'navigation',
-          url: event.url,
+        inject(ErrorService).handle(event.error, {
+          context: { source: 'navigation', url: event.url },
         });
-        if (!appError.isSilent) inject(AppShellErrorService).show(appError);
       }),
     ),
     provideTools(),

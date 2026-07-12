@@ -1,0 +1,29 @@
+@if (notifications.items().length) {
+  <div class="toast-stack" aria-live="polite" aria-relevant="additions">
+    @for (item of notifications.items(); track item.id) {
+      <div
+        class="toast toast--{{ item.kind }}"
+        [attr.role]="item.kind === 'error' || item.kind === 'warn' ? 'alert' : 'status'"
+      >
+        <span class="toast-icon material-symbols-outlined" aria-hidden="true">
+          {{ iconFor(item.kind) }}
+        </span>
+        <p class="toast-message">{{ item.message }}</p>
+        @if (item.action; as action) {
+          <button mat-button class="toast-action" type="button" (click)="runAction(item)">
+            {{ action.label }}
+          </button>
+        }
+        <button
+          mat-icon-button
+          class="toast-close"
+          type="button"
+          aria-label="Dismiss notification"
+          (click)="notifications.dismiss(item.id)"
+        >
+          <span class="material-symbols-outlined" aria-hidden="true">close</span>
+        </button>
+      </div>
+    }
+  </div>
+}

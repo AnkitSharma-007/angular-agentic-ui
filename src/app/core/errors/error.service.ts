@@ -1,29 +1,66 @@
 import { Service, inject } from '@angular/core';
 import { LoggerService, type LogMeta } from '../logging/logger.service';
 import type { LogLevel } from '../logging/log-sink';
+import {
+  NotificationService,
+  type NotificationKind,
+} from '../../shared/notifications/notification.service';
+import { AppShellErrorService } from './app-shell-error.service';
 import { AppError, type ErrorSeverity } from './app-error';
 import { normalizeError } from './normalize-error';
 
-// The central policy for handling an error once it reaches a boundary. Phase 0
-// normalizes and logs; later phases extend `handle` to route presentation
-// (toast vs. dialog vs. inline) and to consult connectivity. Callers should
-// prefer this over ad-hoc `console.error` / `humanizeGeminiError`.
+// Where a handled error is shown to the user.
+// - 'auto'  : route by severity/recoverability (default)
+// - 'toast' : transient notification
+// - 'shell' : persistent app-shell boundary (reserved for app-breaking errors)
+// - 'none'  : log only (caller surfaces it themselves, e.g. an inline banner)
+export type ErrorSurface = 'auto' | 'toast' | 'shell' | 'none';
+
+export interface HandleOptions {
+  readonly context?: Record<string, unknown>;
+  readonly surface?: ErrorSurface;
+  readonly correlationId?: string;
+  // When provided (and the error surfaces as a toast), adds a "Retry" action.
+  readonly retry?: () => void;
+}
+
+// The central policy for handling an error at a boundary: normalize → log →
+// present. Callers pick the surface (or let it auto-route). Use `normalize()`
+// when you only need the typed error without logging or UI.
 @Service()
 export class ErrorService {
   private readonly logger = inject(LoggerService);
+  private readonly notifications = inject(NotificationService);
+  private readonly shell = inject(AppShellErrorService);
 
-  // Normalize, log, and return the structured error. Aborts are logged at debug
-  // and never treated as failures.
-  handle(error: unknown, context?: Record<string, unknown>): AppError {
-    const appError = normalizeError(error, context);
+  handle(error: unknown, options?: HandleOptions): AppError {
+    const appError = normalizeError(error, options?.context);
+    if (options?.correlationId) appError.enrich({ correlationId: options.correlationId });
     this.log(appError);
+    this.present(appError, options);
     return appError;
   }
 
-  // Classify without logging or presenting — for callers that only need the
-  // typed error (e.g. to read `userMessage` for an inline banner).
+  // Classify without logging or presenting.
   normalize(error: unknown, context?: Record<string, unknown>): AppError {
     return normalizeError(error, context);
+  }
+
+  private present(appError: AppError, options?: HandleOptions): void {
+    const surface = options?.surface ?? 'auto';
+    if (surface === 'none' || appError.isSilent || appError.handled) return;
+
+    const target = surface === 'auto' ? routeSurface(appError) : surface;
+    if (target === 'shell') {
+      this.shell.show(appError);
+    } else {
+      this.notifications.notify(appError.userMessage, {
+        kind: severityToKind(appError.severity),
+        action: options?.retry ? { label: 'Retry', handler: options.retry } : undefined,
+        dedupeKey: `${appError.category}:${appError.code ?? ''}:${appError.userMessage}`,
+      });
+    }
+    appError.markHandled();
   }
 
   private log(appError: AppError): void {
@@ -40,6 +77,25 @@ export class ErrorService {
       return;
     }
     this.logger[severityToLevel(appError.severity)](detail, meta);
+  }
+}
+
+// App-breaking errors go to the persistent shell boundary (with a reload
+// prompt); everything else is a transient toast.
+function routeSurface(appError: AppError): 'toast' | 'shell' {
+  if (appError.code === 'chunk_load' || appError.severity === 'fatal') return 'shell';
+  return 'toast';
+}
+
+function severityToKind(severity: ErrorSeverity): NotificationKind {
+  switch (severity) {
+    case 'info':
+      return 'info';
+    case 'warn':
+      return 'warn';
+    case 'error':
+    case 'fatal':
+      return 'error';
   }
 }
 

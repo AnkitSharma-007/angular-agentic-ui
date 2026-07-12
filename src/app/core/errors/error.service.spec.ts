@@ -1,8 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ErrorService } from './error.service';
 import { AppError } from './app-error';
+import { AppShellErrorService } from './app-shell-error.service';
+import { NotificationService } from '../../shared/notifications/notification.service';
 import { LOG_SINKS, type LogEntry, type LogSink } from '../logging/log-sink';
 
 class CapturingSink implements LogSink {
@@ -15,6 +17,8 @@ class CapturingSink implements LogSink {
 describe('ErrorService', () => {
   let service: ErrorService;
   let sink: CapturingSink;
+  let notifications: NotificationService;
+  let shell: AppShellErrorService;
 
   beforeEach(() => {
     sink = new CapturingSink();
@@ -23,7 +27,11 @@ describe('ErrorService', () => {
       providers: [provideZonelessChangeDetection(), { provide: LOG_SINKS, useValue: [sink] }],
     });
     service = TestBed.inject(ErrorService);
+    notifications = TestBed.inject(NotificationService);
+    shell = TestBed.inject(AppShellErrorService);
   });
+
+  afterEach(() => notifications.clear());
 
   it('normalizes, logs, and returns the AppError', () => {
     const out = service.handle(new Error('401 Unauthorized'));
@@ -54,8 +62,53 @@ describe('ErrorService', () => {
   });
 
   it('carries correlationId + context into the log entry', () => {
-    service.handle(new AppError({ category: 'api', correlationId: 'turn-3', context: { round: 2 } }));
+    service.handle(
+      new AppError({ category: 'api', correlationId: 'turn-3', context: { round: 2 } }),
+    );
     expect(sink.entries[0].correlationId).toBe('turn-3');
     expect((sink.entries[0].context as Record<string, unknown>)['round']).toBe(2);
+  });
+
+  describe('presentation', () => {
+    it('surfaces recoverable errors as a toast and marks them handled', () => {
+      const out = service.handle(new Error('Failed to fetch'));
+      expect(notifications.items()).toHaveLength(1);
+      expect(notifications.items()[0].kind).toBe('error');
+      expect(shell.error()).toBeNull();
+      expect(out.handled).toBe(true);
+    });
+
+    it('routes chunk-load errors to the shell boundary, not a toast', () => {
+      service.handle(new Error('Failed to fetch dynamically imported module: /x.js'));
+      expect(shell.error()?.code).toBe('chunk_load');
+      expect(notifications.items()).toHaveLength(0);
+    });
+
+    it('never surfaces silent (abort) errors', () => {
+      service.handle(new DOMException('Aborted', 'AbortError'));
+      expect(notifications.items()).toHaveLength(0);
+      expect(shell.error()).toBeNull();
+    });
+
+    it('surface: "none" logs but does not present', () => {
+      service.handle(new Error('Failed to fetch'), { surface: 'none' });
+      expect(sink.entries).toHaveLength(1);
+      expect(notifications.items()).toHaveLength(0);
+    });
+
+    it('adds a Retry action when a retry callback is supplied', () => {
+      const retry = vi.fn();
+      service.handle(new Error('Failed to fetch'), { retry });
+      const action = notifications.items()[0].action;
+      expect(action?.label).toBe('Retry');
+      action?.handler();
+      expect(retry).toHaveBeenCalledOnce();
+    });
+
+    it('respects an explicit shell surface override', () => {
+      service.handle(new Error('boom'), { surface: 'shell' });
+      expect(shell.error()).not.toBeNull();
+      expect(notifications.items()).toHaveLength(0);
+    });
   });
 });

@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { HeaderComponent } from './shared/header/header';
 import { CostMeterComponent } from './shared/cost-meter/cost-meter';
 import { ObservabilityDrawerComponent } from './shared/observability-drawer/observability-drawer';
+import { NotificationHostComponent } from './shared/notifications/notification-host';
 import { AppShellErrorService } from './core/errors/app-shell-error.service';
 
 @Component({
@@ -16,6 +17,7 @@ import { AppShellErrorService } from './core/errors/app-shell-error.service';
     HeaderComponent,
     CostMeterComponent,
     ObservabilityDrawerComponent,
+    NotificationHostComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
