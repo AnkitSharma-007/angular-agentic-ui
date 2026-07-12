@@ -7,6 +7,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { ReplayService } from '../../core/replay/replay.service';
 import type { ReplaySummary } from '../../core/replay/replay.types';
+import { REPLAY_WARN_BYTES } from '../../core/replay/replay-size';
 import { PageHeaderComponent } from '../../shared/page-header/page-header';
 
 @Component({
@@ -123,5 +124,18 @@ export class LibraryComponent implements OnInit {
       dateStyle: 'medium',
       timeStyle: 'short',
     }).format(d);
+  }
+
+  protected formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${Math.round(kb)} KB`;
+    return `${(kb / 1024).toFixed(1)} MB`;
+  }
+
+  // A run past the save-time soft cap is flagged so users know it may load
+  // slowly before they hit Replay (L10).
+  protected isLargeReplay(bytes: number | undefined): boolean {
+    return bytes !== undefined && bytes > REPLAY_WARN_BYTES;
   }
 }

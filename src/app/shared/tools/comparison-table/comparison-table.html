@@ -112,6 +112,18 @@
           </li>
         }
       </ul>
+
+      @if (isPending()) {
+        <div class="options-decline">
+          <button mat-stroked-button color="warn" type="button" (click)="cancel()">
+            <span class="material-symbols-outlined" aria-hidden="true">do_not_disturb_on</span>
+            Cancel selection
+          </button>
+          <span class="options-decline-hint">
+            None of these fit? The agent will re-plan.
+          </span>
+        </div>
+      }
     </mat-card-content>
   }
 </mat-card>

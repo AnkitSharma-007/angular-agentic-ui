@@ -90,8 +90,16 @@
     border-top: 1px solid var(--mat-sys-outline-variant);
   }
 
+  // A GFM table can be wider than the chat column on phones. `display: block`
+  // turns the table itself into a horizontal scroll container (M20): it sizes to
+  // its content, caps at the column width, and scrolls when it overflows — no
+  // wrapper element needed, so the hardened marked renderer stays untouched.
   table {
-    width: 100%;
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border-collapse: collapse;
     margin: 0.75em 0;
     font-size: 0.95em;

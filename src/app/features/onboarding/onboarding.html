@@ -249,24 +249,37 @@
       </mat-card-content>
 
       <mat-card-actions class="onboarding-actions" align="end">
-        <button mat-button type="button" (click)="forgetSavedKey()">
-          Forget saved key
-        </button>
-        <button
-          mat-flat-button
-          color="primary"
-          type="button"
-          (click)="unlock()"
-          [disabled]="!canUnlock()"
-        >
-          @if (statusKind === 'unlocking') {
-            <mat-progress-spinner diameter="18" mode="indeterminate" />
-            Unlocking…
-          } @else {
-            <span class="material-symbols-outlined" aria-hidden="true">lock_open</span>
-            Unlock
-          }
-        </button>
+        @if (confirmingForget()) {
+          <span class="forget-confirm-text">
+            Forget the stored key? You'll need to paste it again.
+          </span>
+          <button mat-button type="button" (click)="cancelForget()">
+            Cancel
+          </button>
+          <button mat-flat-button color="warn" type="button" (click)="forgetSavedKey()">
+            <span class="material-symbols-outlined" aria-hidden="true">delete_forever</span>
+            Forget key
+          </button>
+        } @else {
+          <button mat-button type="button" (click)="forgetSavedKey()">
+            Forget saved key
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="unlock()"
+            [disabled]="!canUnlock()"
+          >
+            @if (statusKind === 'unlocking') {
+              <mat-progress-spinner diameter="18" mode="indeterminate" />
+              Unlocking…
+            } @else {
+              <span class="material-symbols-outlined" aria-hidden="true">lock_open</span>
+              Unlock
+            }
+          </button>
+        }
       </mat-card-actions>
     </mat-card>
   </section>

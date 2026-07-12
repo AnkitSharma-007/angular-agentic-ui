@@ -49,4 +49,11 @@ export class ComparisonTableComponent {
       selection: option as unknown as Record<string, unknown>,
     });
   }
+
+  // Decline the whole comparison instead of forcing a pick. The agent sees a
+  // rejection and can re-plan, rather than the loop staying blocked until the
+  // user cancels the entire stream (H11).
+  protected cancel(): void {
+    this.interrupts.decide(this.callId(), { kind: 'reject' });
+  }
 }

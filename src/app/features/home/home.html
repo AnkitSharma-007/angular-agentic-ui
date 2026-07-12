@@ -137,6 +137,17 @@
       </section>
     }
 
+    @if (replayLoadError(); as msg) {
+      <div class="banner error" role="alert">
+        <span class="material-symbols-outlined" aria-hidden="true">error</span>
+        <span class="banner-text">{{ msg }}</span>
+        <a mat-stroked-button routerLink="/library" class="banner-action">
+          <span class="material-symbols-outlined" aria-hidden="true">video_library</span>
+          Back to Library
+        </a>
+      </div>
+    }
+
     @if (isStreaming() || hasOutput()) {
       <app-agent-graph />
     }
@@ -192,9 +203,24 @@
                 *ngComponentOutlet="component; inputs: inputsFor(call)"
               />
             } @else if (registry.hasFailed(call.name)) {
-              <div class="tool-unknown" role="status" aria-live="polite">
+              <div class="tool-unknown tool-unknown--failed" role="status" aria-live="polite">
                 <span class="material-symbols-outlined" aria-hidden="true">error</span>
-                <span>Failed to load <code>{{ call.name }}</code> module. Reload to retry.</span>
+                <span>Couldn't load the <code>{{ call.name }}</code> module.</span>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="tool-retry"
+                  [disabled]="retryingTools().has(call.name)"
+                  (click)="retryToolLoad(call.name)"
+                >
+                  @if (retryingTools().has(call.name)) {
+                    <span class="material-symbols-outlined spinning" aria-hidden="true">progress_activity</span>
+                    Retrying…
+                  } @else {
+                    <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
+                    Retry load
+                  }
+                </button>
               </div>
             } @else if (registry.get(call.name)) {
               <div class="tool-loading" role="status" aria-live="polite">
@@ -292,6 +318,12 @@
                 }
               }
             </button>
+          }
+          @if (saveStatus() === 'saved') {
+            <a mat-stroked-button routerLink="/library" class="view-library-link">
+              <span class="material-symbols-outlined" aria-hidden="true">video_library</span>
+              View in Library
+            </a>
           }
           @if (hasOutput()) {
             <button mat-stroked-button type="button" (click)="reset()">
@@ -394,6 +426,24 @@
               @if (isRecording()) {
                 <span class="mic-status" role="status" aria-live="polite">Listening…</span>
               }
+            } @else {
+              <!-- L5: keep voice discoverable on browsers that lack the Web Speech
+                   API — show a disabled mic with an explanatory tooltip instead of
+                   hiding it entirely. The wrapper carries the title so it still
+                   appears on hover over the disabled button. -->
+              <span
+                class="mic-unsupported"
+                title="Voice input isn't supported in this browser — try Chrome or Edge."
+              >
+                <button
+                  type="button"
+                  class="attach-btn mic-btn mic-btn--unsupported"
+                  disabled
+                  aria-label="Voice input is not supported in this browser"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">mic_off</span>
+                </button>
+              </span>
             }
             <span class="kbd-hint" aria-hidden="true">
               <kbd>{{ sendShortcutModifier }}</kbd>

@@ -46,7 +46,11 @@ import {
   startSpeechRecognition,
   type SpeechController,
 } from '../../core/media/speech';
-import { replaySizeError, replaySizeWarning } from '../../core/replay/replay-size';
+import {
+  estimateReplayBytes,
+  replaySizeError,
+  replaySizeWarning,
+} from '../../core/replay/replay-size';
 import { isValidReplayPayload } from '../../core/replay/replay.types';
 import { OnboardingComponent } from '../onboarding/onboarding';
 import { ThoughtComponent } from '../../shared/thought/thought';
@@ -137,6 +141,13 @@ export class HomeComponent implements OnInit {
   protected readonly replaySpeed = signal<ReplaySpeed>(1);
   protected readonly speedOptions = REPLAY_SPEEDS;
   protected readonly activeReplayId = signal<string | null>(null);
+  // A load-time replay failure (missing / corrupt / storage error) shown as a
+  // dedicated banner with a "Back to Library" recovery link (M19). Kept
+  // separate from the streaming error phase so its recovery action differs.
+  protected readonly replayLoadError = signal<string | null>(null);
+  // Names of failed tool modules currently being retried, so the card can show
+  // a spinner and block duplicate clicks (M19).
+  protected readonly retryingTools = signal<ReadonlySet<string>>(new Set());
   protected readonly canSave = computed(() => {
     return (
       this.phase() === 'complete' &&
@@ -256,9 +267,8 @@ export class HomeComponent implements OnInit {
     this.attachmentError.set(null);
     this.micError.set(null);
     this.activeReplayId.set(null);
-    if (this.route.snapshot.queryParamMap.has('replay')) {
-      void this.router.navigate([], { queryParams: {} });
-    }
+    this.replayLoadError.set(null);
+    this.clearReplayQueryParam();
   }
 
   protected componentFor(call: ToolCallState) {
@@ -266,6 +276,26 @@ export class HomeComponent implements OnInit {
     // finish loading and the tool's component class becomes available.
     void this.registry.loadedNames();
     return this.registry.componentFor(call.name);
+  }
+
+  // Retry a lazy tool module that failed to load. `loadImpl` clears the failed
+  // flag on success (re-rendering the real card) and re-flags it on failure
+  // (the retry affordance reappears). Concurrent clicks are deduped (M19).
+  protected retryToolLoad(name: string): void {
+    if (this.retryingTools().has(name)) return;
+    this.retryingTools.update((s) => new Set(s).add(name));
+    void this.registry
+      .loadImpl(name)
+      .catch(() => {
+        /* re-flagged in registry.failedNames; the retry button reappears */
+      })
+      .finally(() => {
+        this.retryingTools.update((s) => {
+          const next = new Set(s);
+          next.delete(name);
+          return next;
+        });
+      });
   }
 
   protected inputsFor(call: ToolCallState): Record<string, unknown> {
@@ -289,11 +319,10 @@ export class HomeComponent implements OnInit {
 
     this.lastPrompt.set(text);
     this.saveStatus.set('idle');
+    this.replayLoadError.set(null);
     if (this.activeReplayId() !== null) {
       this.activeReplayId.set(null);
-      if (this.route.snapshot.queryParamMap.has('replay')) {
-        void this.router.navigate([], { queryParams: {} });
-      }
+      this.clearReplayQueryParam();
     }
 
     this.gemini
@@ -481,6 +510,7 @@ export class HomeComponent implements OnInit {
         ...(customToolSpecs.length > 0 ? { customToolSpecs } : {}),
         durationMs: Math.max(0, lastTs - firstTs),
         eventCount: events.length,
+        sizeBytes: estimateReplayBytes(rawHistory),
         stats: this.stats(),
       });
       this.saveStatus.set('saved');
@@ -510,18 +540,26 @@ export class HomeComponent implements OnInit {
   }
 
   private async loadAndReplay(id: string): Promise<void> {
+    this.replayLoadError.set(null);
     try {
       const payload = await this.replays.load(id);
       if (!payload) {
-        this.store.markError(`Replay "${id}" not found.`);
+        // Missing run (deleted, or a shared link from another browser). Surface
+        // a Back-to-Library recovery path and drop the dead ?replay= param so a
+        // refresh doesn't re-trigger the same failure (M19).
+        this.replayLoadError.set(
+          "We couldn't find that saved run. It may have been deleted from this browser.",
+        );
+        this.clearReplayQueryParam();
         return;
       }
       // Guard the untrusted stored shape before replaying it. `ensureRegistered
       // ForReplay` re-validates each embedded spec, so invalid ones are skipped.
       if (!isValidReplayPayload(payload)) {
-        this.store.markError(
+        this.replayLoadError.set(
           "This saved run is corrupted or from an incompatible version and can't be replayed.",
         );
+        this.clearReplayQueryParam();
         return;
       }
 
@@ -554,7 +592,14 @@ export class HomeComponent implements OnInit {
           error: (err) => this.store.markError(humanizeGeminiError(err)),
         });
     } catch (err) {
-      this.store.markError(humanizeGeminiError(err));
+      this.replayLoadError.set(humanizeGeminiError(err));
+      this.clearReplayQueryParam();
+    }
+  }
+
+  private clearReplayQueryParam(): void {
+    if (this.route.snapshot.queryParamMap.has('replay')) {
+      void this.router.navigate([], { queryParams: {} });
     }
   }
 

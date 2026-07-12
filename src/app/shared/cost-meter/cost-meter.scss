@@ -451,9 +451,13 @@
 }
 
 @media (max-width: 640px) {
+  // Bottom-right collides with the chat composer's send/cancel button on phones
+  // (H10), so dock the meter just below the sticky 60px header instead. The
+  // panel then expands downward and stays scrollable if it outgrows the screen.
   :host {
-    bottom: 0.875rem;
-    right: 0.875rem;
+    top: calc(60px + env(safe-area-inset-top, 0px) + 0.5rem);
+    right: max(0.75rem, env(safe-area-inset-right, 0px));
+    bottom: auto;
   }
 
   .pill {
@@ -462,6 +466,9 @@
   }
 
   .panel {
-    width: calc(100vw - 1.75rem);
+    width: calc(100vw - 1.5rem);
+    max-height: calc(100dvh - 60px - 1.75rem);
+    overflow-y: auto;
+    transform-origin: top right;
   }
 }

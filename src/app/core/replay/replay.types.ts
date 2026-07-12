@@ -18,6 +18,10 @@ export interface ReplayPayload {
   readonly customToolSpecs?: readonly CustomToolSpec[];
   readonly durationMs: number;
   readonly eventCount: number;
+  // Approximate encoded size of the run (bytes), recorded at save time so the
+  // Library can flag heavy replays without loading each payload. Optional:
+  // payloads saved before this field was added omit it (L10).
+  readonly sizeBytes?: number;
   readonly stats: {
     readonly chunks: number;
     readonly parts: number;
@@ -33,6 +37,7 @@ export interface ReplaySummary {
   readonly model: string;
   readonly durationMs: number;
   readonly eventCount: number;
+  readonly sizeBytes?: number;
 }
 
 export function toSummary(p: ReplayPayload): ReplaySummary {
@@ -44,6 +49,7 @@ export function toSummary(p: ReplayPayload): ReplaySummary {
     model: p.model,
     durationMs: p.durationMs,
     eventCount: p.eventCount,
+    sizeBytes: p.sizeBytes,
   };
 }
 
@@ -66,6 +72,7 @@ const replayPayloadSchema = z.object({
   customToolSpecs: z.array(z.unknown()).optional(),
   durationMs: z.number(),
   eventCount: z.number(),
+  sizeBytes: z.number().optional(),
   stats: z.object({
     chunks: z.number(),
     parts: z.number(),

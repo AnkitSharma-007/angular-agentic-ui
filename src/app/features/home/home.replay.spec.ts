@@ -268,6 +268,44 @@ describe('HomeComponent replay flow', () => {
     expect(loadSpy).toHaveBeenLastCalledWith('r6');
   });
 
+  it('surfaces a Back-to-Library recovery error for a missing replay id (M19)', async () => {
+    const fixture = TestBed.createComponent(HomeComponent);
+    const instance = fixture.componentInstance as unknown as {
+      loadAndReplay: (id: string) => Promise<void>;
+      replayLoadError: () => string | null;
+      activeReplayId: () => string | null;
+    };
+    await fixture.whenStable();
+
+    // Nothing saved under this id → load() resolves null → recovery banner state.
+    await instance.loadAndReplay('does-not-exist');
+
+    expect(instance.replayLoadError()).toBeTruthy();
+    expect(instance.activeReplayId()).toBeNull();
+  });
+
+  it('retryToolLoad re-attempts a failed lazy module and clears the failed flag (M19)', async () => {
+    const registry = TestBed.inject(ToolRegistry);
+    const tool = makeMockTool('flakyTool');
+    tool.loadSpy.mockRejectedValueOnce(new Error('network blip'));
+    registry.register(tool.manifest);
+
+    const fixture = TestBed.createComponent(HomeComponent);
+    const instance = fixture.componentInstance as unknown as {
+      retryToolLoad: (name: string) => void;
+    };
+    await fixture.whenStable();
+
+    // First load fails → the registry flags it as failed.
+    await expect(registry.loadImpl('flakyTool')).rejects.toThrow('network blip');
+    expect(registry.hasFailed('flakyTool')).toBe(true);
+
+    // Retry now succeeds → failed flag clears and the component resolves.
+    instance.retryToolLoad('flakyTool');
+    await vi.waitFor(() => expect(registry.hasFailed('flakyTool')).toBe(false));
+    expect(registry.componentFor('flakyTool')).not.toBeNull();
+  });
+
   it('reset() clears activeReplayId and resets the agent registry', async () => {
     const agents = TestBed.inject(AgentRegistry);
     const resetAgentsSpy = vi.spyOn(agents, 'resetForNewTurn');

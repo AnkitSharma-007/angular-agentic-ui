@@ -209,15 +209,22 @@ export class OnboardingComponent {
     }
   }
 
+  // Two-step inline confirm instead of a native confirm() dialog (M12).
+  protected readonly confirmingForget = signal(false);
+
   protected forgetSavedKey(): void {
-    const confirmed = confirm(
-      'Forget the encrypted key stored on this device? You will need to paste a key again.',
-    );
-    if (confirmed) {
-      void this.apiKey.clear();
-      this.model.update((m) => ({ ...m, passphrase: '' }));
-      this.status.set({ kind: 'idle' });
+    if (!this.confirmingForget()) {
+      this.confirmingForget.set(true);
+      return;
     }
+    this.confirmingForget.set(false);
+    void this.apiKey.clear();
+    this.model.update((m) => ({ ...m, passphrase: '' }));
+    this.status.set({ kind: 'idle' });
+  }
+
+  protected cancelForget(): void {
+    this.confirmingForget.set(false);
   }
 
   protected togglePassphraseVisibility(): void {

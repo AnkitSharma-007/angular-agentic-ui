@@ -85,10 +85,18 @@
       }
     </div>
     <div class="card-actions">
-      <button mat-stroked-button color="warn" (click)="clearKey()" [disabled]="!apiKey.hasKey()">
-        <mat-icon>delete</mat-icon>
-        Clear key
-      </button>
+      @if (confirmingClearKey()) {
+        <button mat-stroked-button (click)="cancelClearKey()">Cancel</button>
+        <button mat-flat-button color="warn" (click)="clearKey()">
+          <mat-icon>delete_forever</mat-icon>
+          Confirm clear
+        </button>
+      } @else {
+        <button mat-stroked-button color="warn" (click)="clearKey()" [disabled]="!apiKey.hasKey()">
+          <mat-icon>delete</mat-icon>
+          Clear key
+        </button>
+      }
     </div>
   </mat-card>
 
@@ -137,6 +145,7 @@
             step="1000"
             placeholder="e.g. 40000"
             [formField]="budgetForm.maxTokens"
+            (blur)="saveBudget()"
           />
           @if (budgetForm.maxTokens().invalid()) {
             <mat-error>{{ budgetForm.maxTokens().errors()[0]?.message }}</mat-error>
@@ -154,6 +163,7 @@
             step="1"
             placeholder="e.g. 6"
             [formField]="budgetForm.maxRounds"
+            (blur)="saveBudget()"
           />
           @if (budgetForm.maxRounds().invalid()) {
             <mat-error>{{ budgetForm.maxRounds().errors()[0]?.message }}</mat-error>
@@ -171,6 +181,7 @@
             step="0.01"
             placeholder="e.g. 0.10"
             [formField]="budgetForm.maxCost"
+            (blur)="saveBudget()"
           />
           @if (budgetForm.maxCost().invalid()) {
             <mat-error>{{ budgetForm.maxCost().errors()[0]?.message }}</mat-error>
@@ -180,14 +191,14 @@
         </mat-form-field>
       </div>
     </div>
-    <div class="card-actions">
+    <div class="card-actions card-actions--split">
+      <span class="autosave-hint">
+        <mat-icon aria-hidden="true">bolt</mat-icon>
+        Changes apply and save automatically
+      </span>
       <button mat-stroked-button (click)="resetBudget()">
         <mat-icon>restart_alt</mat-icon>
         Clear all
-      </button>
-      <button mat-flat-button color="primary" (click)="saveBudget()">
-        <mat-icon>save</mat-icon>
-        Save
       </button>
     </div>
   </mat-card>

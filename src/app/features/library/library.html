@@ -140,6 +140,16 @@
                     <mat-icon class="meta-icon">stream</mat-icon>
                     <span>{{ s.eventCount }} events</span>
                   </span>
+                  @if (s.sizeBytes !== undefined) {
+                    <span
+                      class="meta-chunk"
+                      [class.meta-chunk--warn]="isLargeReplay(s.sizeBytes)"
+                      [title]="isLargeReplay(s.sizeBytes) ? 'Large replay — may load slowly' : 'Approximate stored size'"
+                    >
+                      <mat-icon class="meta-icon">{{ isLargeReplay(s.sizeBytes) ? 'warning' : 'sd_card' }}</mat-icon>
+                      <span>{{ formatSize(s.sizeBytes) }}</span>
+                    </span>
+                  }
                   <code class="model">{{ s.model }}</code>
                 </p>
               </div>

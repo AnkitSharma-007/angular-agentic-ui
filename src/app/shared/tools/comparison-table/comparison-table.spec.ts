@@ -72,6 +72,32 @@ describe('ComparisonTableComponent', () => {
     });
   });
 
+  it('renders a Cancel selection action while pending (H11)', async () => {
+    const fixture = TestBed.createComponent(ComparisonTableComponent);
+    fixture.componentRef.setInput('callId', 'c1');
+    fixture.componentRef.setInput('args', FIXTURE_ARGS);
+    fixture.componentRef.setInput('status', 'pending_approval');
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain('Cancel selection');
+  });
+
+  it('cancel() rejects the interrupt so the agent can re-plan (H11)', async () => {
+    const decide = vi.spyOn(interrupts, 'decide');
+    const controller = new AbortController();
+    void interrupts.pendingDecision('c1', controller.signal);
+
+    const fixture = TestBed.createComponent(ComparisonTableComponent);
+    fixture.componentRef.setInput('callId', 'c1');
+    fixture.componentRef.setInput('args', FIXTURE_ARGS);
+    fixture.componentRef.setInput('status', 'pending_approval');
+    await fixture.whenStable();
+
+    (fixture.componentInstance as unknown as { cancel: () => void }).cancel();
+
+    expect(decide).toHaveBeenCalledWith('c1', { kind: 'reject' });
+  });
+
   it('renders the error state with a fallback message', async () => {
     const fixture = TestBed.createComponent(ComparisonTableComponent);
     fixture.componentRef.setInput('callId', 'c1');

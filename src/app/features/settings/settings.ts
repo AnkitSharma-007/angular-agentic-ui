@@ -146,11 +146,20 @@ export class SettingsComponent {
     this.toolSynthesis.setEnabled(enabled);
   }
 
+  // Two-step inline confirm instead of a native confirm() dialog (M12).
+  protected readonly confirmingClearKey = signal(false);
+
   protected clearKey(): void {
-    const confirmed = confirm(
-      'Clear the API key from this device? You will need to re-enter it.',
-    );
-    if (confirmed) void this.apiKey.clear();
+    if (!this.confirmingClearKey()) {
+      this.confirmingClearKey.set(true);
+      return;
+    }
+    this.confirmingClearKey.set(false);
+    void this.apiKey.clear();
+  }
+
+  protected cancelClearKey(): void {
+    this.confirmingClearKey.set(false);
   }
 
   protected saveBudget(): void {

@@ -207,6 +207,17 @@
   }
 }
 
+.item-confirm {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  margin-right: 0.125rem;
+}
+
+.item-confirm-yes {
+  color: var(--mat-sys-error);
+}
+
 .form-col {
   display: flex;
   flex-direction: column;

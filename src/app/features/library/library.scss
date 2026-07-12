@@ -246,6 +246,14 @@
     line-height: 1;
     color: color-mix(in srgb, var(--mat-sys-primary) 70%, var(--mat-sys-on-surface-variant));
   }
+
+  &.meta-chunk--warn {
+    color: var(--mat-sys-error);
+
+    .meta-icon {
+      color: var(--mat-sys-error);
+    }
+  }
 }
 
 .replay-meta .model {

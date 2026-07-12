@@ -262,6 +262,14 @@ html.theme-dark .banner.success {
   gap: 0.5rem;
   padding: 0.5rem 0 0;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.forget-confirm-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--mat-sys-on-surface-variant);
 }
 
 button[mat-flat-button],

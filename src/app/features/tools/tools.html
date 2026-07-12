@@ -76,14 +76,37 @@
                   {{ spec.parameters.length }} param{{ spec.parameters.length === 1 ? '' : 's' }}
                 </span>
               </button>
-              <button
-                mat-icon-button
-                class="item-delete"
-                aria-label="Delete tool"
-                (click)="delete(spec)"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
+              @if (confirmingDeleteId() === spec.id) {
+                <div class="item-confirm">
+                  <button
+                    mat-icon-button
+                    class="item-confirm-cancel"
+                    aria-label="Cancel delete"
+                    title="Cancel"
+                    (click)="cancelDelete()"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    class="item-confirm-yes"
+                    [attr.aria-label]="'Confirm delete ' + spec.name"
+                    title="Confirm delete"
+                    (click)="delete(spec)"
+                  >
+                    <mat-icon>delete_forever</mat-icon>
+                  </button>
+                </div>
+              } @else {
+                <button
+                  mat-icon-button
+                  class="item-delete"
+                  aria-label="Delete tool"
+                  (click)="delete(spec)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
             </li>
           }
         </ul>

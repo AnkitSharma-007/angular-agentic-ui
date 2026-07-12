@@ -116,6 +116,26 @@
   flex-wrap: wrap;
 }
 
+.card-actions--split {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.autosave-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--mat-sys-primary);
+  }
+}
+
 .full-width {
   width: 100%;
 }

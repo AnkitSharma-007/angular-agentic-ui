@@ -102,6 +102,9 @@ export class ToolsComponent {
   protected readonly saving = signal(false);
   protected readonly saveError = signal<string | null>(null);
   protected readonly justSaved = signal<string | null>(null);
+  // Id of the tool awaiting a two-step inline delete confirm, replacing the
+  // native confirm() dialog for a consistent, styleable pattern (M12).
+  protected readonly confirmingDeleteId = signal<string | null>(null);
 
   protected readonly typeOptions: readonly { value: CustomToolParameterType; label: string }[] = [
     { value: 'string', label: 'string' },
@@ -261,13 +264,22 @@ export class ToolsComponent {
   }
 
   protected async delete(spec: CustomToolSpec): Promise<void> {
-    if (!confirm(`Delete custom tool "${spec.name}"?`)) return;
+    // First click arms the inline confirm; second click on the same tool commits.
+    if (this.confirmingDeleteId() !== spec.id) {
+      this.confirmingDeleteId.set(spec.id);
+      return;
+    }
+    this.confirmingDeleteId.set(null);
     try {
       await this.customTools.delete(spec.id);
       if (this.editingId() === spec.id) this.startNew();
     } catch (err) {
       this.saveError.set(err instanceof Error ? err.message : 'Delete failed.');
     }
+  }
+
+  protected cancelDelete(): void {
+    this.confirmingDeleteId.set(null);
   }
 
   protected loadExample(): void {

@@ -508,7 +508,22 @@
   }
 }
 
-.tool-loading .spinning {
+.tool-unknown--failed {
+  flex-wrap: wrap;
+
+  .tool-retry {
+    margin-left: auto;
+
+    .material-symbols-outlined {
+      font-size: 18px;
+      margin-right: 0.25rem;
+      vertical-align: text-bottom;
+    }
+  }
+}
+
+.tool-loading .spinning,
+.tool-unknown .spinning {
   font-size: 18px;
   line-height: 1;
   animation: tool-loading-spin 0.9s linear infinite;
@@ -1056,6 +1071,16 @@
     cursor: not-allowed;
     opacity: 0.45;
   }
+}
+
+.mic-unsupported {
+  display: inline-flex;
+}
+
+// Disabled so it can't be clicked, but pointer-events cede hover to the wrapper
+// span so its explanatory title tooltip still shows (L5).
+.mic-btn--unsupported {
+  pointer-events: none;
 }
 
 .mic-btn.is-recording {
