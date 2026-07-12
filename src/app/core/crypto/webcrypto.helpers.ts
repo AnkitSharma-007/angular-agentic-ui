@@ -1,6 +1,8 @@
 // AES-GCM string encryption with a PBKDF2-derived key. Uses `crypto.subtle`;
 // only the self-contained envelope below is persisted.
 
+import { AuthError, ClientError } from '../errors/app-error';
+
 const PBKDF2_ITERATIONS = 250_000;
 const SALT_BYTES = 16;
 const IV_BYTES = 12;
@@ -24,18 +26,32 @@ export interface EncryptedPayloadV1 {
   readonly ciphertext: string;
 }
 
-export class CryptoNotAvailableError extends Error {
+// Categorized as `client`: the environment can't provide secure crypto, so the
+// encrypted-local storage tier is simply unavailable here.
+export class CryptoNotAvailableError extends ClientError {
   constructor() {
-    super('WebCrypto subtle API is not available in this environment.');
+    super({
+      code: 'crypto_unavailable',
+      userMessage:
+        'Secure storage is unavailable in this browser, so the key can only be kept for this session.',
+      technicalMessage: 'WebCrypto subtle API is not available in this environment.',
+    });
     this.name = 'CryptoNotAvailableError';
   }
 }
 
-export class DecryptionFailedError extends Error {
+// Categorized as `auth`: a decrypt failure almost always means a wrong
+// passphrase (or a tampered blob). The message deliberately gives no oracle.
+export class DecryptionFailedError extends AuthError {
   constructor(cause?: unknown) {
-    super('Decryption failed. The passphrase is likely incorrect.');
+    super({
+      code: 'decryption_failed',
+      recoverable: true,
+      userMessage: 'That passphrase did not unlock the stored key. Try again.',
+      technicalMessage: 'Decryption failed. The passphrase is likely incorrect.',
+      cause: cause instanceof Error ? cause : undefined,
+    });
     this.name = 'DecryptionFailedError';
-    if (cause instanceof Error) this.cause = cause;
   }
 }
 

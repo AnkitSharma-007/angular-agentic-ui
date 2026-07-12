@@ -24,6 +24,7 @@ import { BudgetService } from '../observability/budget.service';
 import { AgentRegistry } from '../agents/agent-registry.service';
 import { CustomToolsService } from '../custom-tools/custom-tools.service';
 import { ToolSynthesisSettings } from '../settings/tool-synthesis.settings';
+import { AuthError } from '../errors/app-error';
 
 export { GEMINI_MODELS, DEFAULT_MODEL };
 export type { GeminiModelId };
@@ -54,9 +55,13 @@ interface StreamOptions {
   readonly signal?: AbortSignal;
 }
 
-class MissingApiKeyError extends Error {
+class MissingApiKeyError extends AuthError {
   constructor() {
-    super('No Gemini API key set. Complete the onboarding flow first.');
+    super({
+      code: 'missing_api_key',
+      userMessage: 'No Gemini API key set. Open Settings to add your key.',
+      technicalMessage: 'No Gemini API key set. Complete the onboarding flow first.',
+    });
     this.name = 'MissingApiKeyError';
   }
 }
