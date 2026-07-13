@@ -226,7 +226,7 @@ Ordered into **independently shippable phases** — each leaves the app fully wo
 | :---: | :---: | --- | --- | --- | :---: | --- |
 | 1 | ✅ **Done** | Accessibility & motion safety net | P1-4, P1-6 | Quick win | Low | `fix(a11y): reduced-motion safety net + 44px touch targets` |
 | 2 | ✅ **Done** | Hide the machinery / product voice-lite | P0-1 (mechanical) | Quick win | Low | `refactor(ux): move telemetry into observability drawer, lead with product voice` |
-| 3 | ⬜ Pending | Theme correctness & style cleanup | P1-5, P1-8, P1-9 (dedupe), P2-10 | Quick win | Low | `fix(theme): sync theme-color, fix system shadows, solidify labels, dedupe styles` |
+| 3 | ✅ **Done** | Theme correctness & style cleanup | P1-5, P1-8, P1-9 (dedupe), P2-10 | Quick win | Low | `fix(theme): sync theme-color, fix system shadows, solidify labels, dedupe styles` |
 | 4 | ⬜ Pending | Design-token foundation | P0-2 | Overhaul | Med | `refactor(styles): introduce spacing/radius/type design tokens` |
 | 5 | ⬜ Pending | Color tokenization + light-mode pass | P0-3 | Overhaul | Med-High | `refactor(theme): tokenize brand/chart colors + light-mode design pass` |
 | 6 | ⬜ Pending | Component consolidation | P1-9 (full) | Overhaul | Med | `refactor(ui): consolidate badge/metric/section/bar primitives` |
@@ -285,9 +285,18 @@ refactor(ux): move telemetry into observability drawer and lead with product voi
 Includes-AI-Code: true
 ```
 
-### Phase 3 — Theme correctness & style cleanup
+### Phase 3 — Theme correctness & style cleanup — ✅ Done (2026-07-13)
 **Goal:** Fix small correctness tells and delete latent style bugs. Low risk, no new system yet.
 **Addresses:** P1-8 (theme-color/system shadows), P1-5 (gradient text), P1-9 dedupe, P2-10 (keyframes).
+
+> **Implemented (2026-07-13):**
+> - `ThemeService` now resolves **system** preference to a concrete `theme-light`/`theme-dark` class (via `resolvedTheme()`), so `--app-shadow-color` (and `color-scheme`) retune correctly under system mode instead of stranding the `:root` default (`theme.service.ts`).
+> - `<meta name="theme-color">` is now driven from `ThemeService` — it reads the resolved body surface colour and updates on every theme change, so the mobile chrome bar matches light/dark instead of a hardcoded `#0b0d12`.
+> - Converted gradient-clipped **functional** labels to solid `--mat-sys-on-surface`: cost-meter `.panel-cost` and observability-drawer `.title`. Display headlines (main hero, onboarding hero, page-header titles) keep the brand gradient — gradient text is now reserved for hero/title moments, not data.
+> - Deleted the duplicate/overriding `.tool-status.rejected`/`.tool-status.pending` blocks in `styles.scss`; the status pills now render from a single source, and **pending** is once again visually distinct from **running** (the stray override had made them identical).
+> - Centralised shared keyframes (`grad-shift`, `response-in`) into `styles.scss` and removed the duplicate copies from `hero.scss`, `onboarding-hero.scss`, `page-header.scss`, `home.scss`, `user-turn.scss`. Removed the re-declared `.eyebrow`/`.pulse-dot` (+ duplicate `pulse-dot` keyframe) from `onboarding-hero.scss`, which now inherits the global versions.
+> - **Validation:** `npm test` → 619/619 passing; `npm run build` → clean; theme spec unaffected.
+> - **Note:** `index*.html` keeps `#0b0d12` as the pre-JS fallback (dark-first loading); ThemeService corrects it on init. Broad hex→token color work is Phase 5.
 **Scope:**
 - Drive `<meta name="theme-color">` from `ThemeService`; make system mode resolve to a concrete light/dark class so `--app-shadow-color` retunes (`index*.html`, `theme.service.ts`, `styles.scss:26-34`).
 - Convert gradient-clipped **functional** labels to solid contrast-safe color (`cost-meter.scss:147-153`, `observability-drawer.scss:69-76`); keep exactly one hero gradient.

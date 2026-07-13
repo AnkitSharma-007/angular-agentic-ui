@@ -51,10 +51,6 @@
   animation: grad-shift 8s linear infinite;
 }
 
-@keyframes grad-shift {
-  to { background-position: 200% 0%; }
-}
-
 .hero-sub {
   margin: 0;
   font-size: clamp(15px, 1.5vw, 17px);

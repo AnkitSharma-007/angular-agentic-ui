@@ -10,41 +10,8 @@
   margin-bottom: 1.5rem;
 }
 
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.32rem 0.7rem;
-  border-radius: 999px;
-  background-color: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
-  color: var(--mat-sys-primary);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 25%, transparent);
-}
-
-.pulse-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background-color: var(--mat-sys-primary);
-  animation: pulse-dot 1.8s ease-out infinite;
-}
-
-@keyframes pulse-dot {
-  0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-primary) 65%, transparent);
-  }
-  70% {
-    box-shadow: 0 0 0 10px color-mix(in srgb, var(--mat-sys-primary) 0%, transparent);
-  }
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-primary) 0%, transparent);
-  }
-}
+// .eyebrow and .pulse-dot are provided by the global stylesheet (src/styles.scss);
+// no local re-declaration needed.
 
 .onboarding-hero h1 {
   margin: 0;
@@ -66,12 +33,6 @@
   animation: grad-shift 8s linear infinite;
 }
 
-@keyframes grad-shift {
-  to {
-    background-position: 200% 0%;
-  }
-}
-
 .hero-sub {
   margin: 0;
   font-size: 15px;
@@ -81,7 +42,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pulse-dot,
   .onboarding-hero h1 .grad {
     animation: none;
   }

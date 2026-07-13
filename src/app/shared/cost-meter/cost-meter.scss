@@ -146,10 +146,8 @@
 
 .panel-cost {
   font: 700 1.5rem/1 var(--font-mono);
-  background: linear-gradient(135deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  // Solid, contrast-safe colour: this is a functional value, not a hero flourish.
+  color: var(--mat-sys-on-surface);
 }
 
 .close-btn {

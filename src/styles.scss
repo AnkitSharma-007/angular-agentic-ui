@@ -258,16 +258,6 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
-.tool-status.rejected {
-  background-color: var(--mat-sys-surface-container-high);
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.tool-status.pending {
-  background-color: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
-}
-
 @keyframes tool-shimmer {
   0% {
     background-position: 200% 0;
@@ -321,6 +311,25 @@ textarea:focus-visible {
   }
   100% {
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-primary) 0%, transparent);
+  }
+}
+
+// Shared keyframes defined once here. @keyframes names are global regardless of
+// view encapsulation, so components can reference these without re-declaring them.
+@keyframes grad-shift {
+  to {
+    background-position: 200% 0%;
+  }
+}
+
+@keyframes response-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

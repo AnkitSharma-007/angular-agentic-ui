@@ -69,10 +69,8 @@
 .title {
   margin: 0;
   font: 700 1.25rem/1.1 var(--font-sans);
-  background: linear-gradient(135deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  // Solid, contrast-safe colour: a panel title, not a hero flourish.
+  color: var(--mat-sys-on-surface);
 }
 
 .close-btn {

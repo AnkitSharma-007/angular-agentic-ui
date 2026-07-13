@@ -45,10 +45,6 @@
   animation: grad-shift 8s linear infinite;
 }
 
-@keyframes grad-shift {
-  to { background-position: 200% 0%; }
-}
-
 .page-subtitle {
   margin: 0;
   font-size: 16px;
