@@ -10,103 +10,24 @@ import { ReplayService } from '../../core/replay/replay.service';
 import { ToolRegistry } from '../../core/registry/tool-registry';
 import { AgentRegistry } from '../../core/agents/agent-registry.service';
 import { TokenAccountantService } from '../../core/observability/token-accountant.service';
-import type {
-  AgentEvent,
-  AgentHandoffEvent,
-  ToolCallEvent,
-  ToolResultEvent,
-  TurnCompleteEvent,
-  TurnStartEvent,
-} from '../../core/streaming/agent-event';
+import type { AgentEvent } from '../../core/streaming/agent-event';
 import type { ReplayPayload } from '../../core/replay/replay.types';
-import type { ToolManifest } from '../../core/registry/tool-descriptor';
+import type { ToolDescriptor, ToolManifest } from '../../core/registry/tool-descriptor';
+import { buildTurnEvents as buildEvents, makeReplayPayload } from '../../testing/replay-fixtures';
+import { defineToolManifest, makeToolDescriptor } from '../../testing/tool-manifest';
 
 // Mock tool reference so componentFor is truthy after load — not a real Angular component.
 function makeMockTool(name: string): {
   manifest: ToolManifest;
   loadSpy: ReturnType<typeof vi.fn>;
 } {
-  const component = class MockComponent {} as unknown as new () => unknown;
-  const loadSpy = vi.fn(async () => ({
-    name,
-    description: `mock ${name}`,
-    declaration: { name, description: 'mock', parameters: { type: 'OBJECT', properties: {} } },
-    argsSchema: { safeParse: () => ({ success: true, data: {} }) },
-    component,
-    execute: async () => ({}),
-  }));
-  return {
-    manifest: {
-      name,
-      description: `mock ${name}`,
-      declaration: { name, description: 'mock', parameters: { type: 'OBJECT', properties: {} } },
-      load: loadSpy,
-    } as unknown as ToolManifest,
-    loadSpy,
-  };
-}
-
-function buildEvents(opts: { tools?: readonly string[]; withHandoff?: boolean }): AgentEvent[] {
-  const turnId = 'saved-turn';
-  const events: AgentEvent[] = [];
-  const start: TurnStartEvent = { type: 'turn_start', ts: 0, turnId };
-  events.push(start);
-  for (const [i, name] of (opts.tools ?? []).entries()) {
-    const call: ToolCallEvent = {
-      type: 'tool_call',
-      ts: 10 + i,
-      turnId,
-      callId: `call-${i}`,
-      name,
-      args: {},
-    };
-    const result: ToolResultEvent = {
-      type: 'tool_result',
-      ts: 20 + i,
-      turnId,
-      callId: `call-${i}`,
-      result: { ok: true },
-    };
-    events.push(call, result);
-  }
-  if (opts.withHandoff) {
-    const handoff: AgentHandoffEvent = {
-      type: 'agent_handoff',
-      ts: 50,
-      turnId,
-      fromAgentId: 'tripPlanner',
-      toAgentId: 'experienceCurator',
-      reason: 'user pivoted to activities',
-    };
-    events.push(handoff);
-  }
-  const complete: TurnCompleteEvent = {
-    type: 'turn_complete',
-    ts: 60,
-    turnId,
-    rounds: 1,
-    finishReason: 'STOP',
-  };
-  events.push(complete);
-  return events;
+  const component = class MockComponent {} as unknown as ToolDescriptor['component'];
+  const loadSpy = vi.fn(async () => makeToolDescriptor(name, { component }));
+  return { manifest: defineToolManifest(name, { load: loadSpy }), loadSpy };
 }
 
 function makePayload(id: string, events: readonly AgentEvent[]): ReplayPayload {
-  const firstTs = events.at(0)?.ts ?? 0;
-  const lastTs = events.at(-1)?.ts ?? firstTs;
-  return {
-    schemaVersion: 1,
-    id,
-    title: 'mock',
-    savedAt: new Date().toISOString(),
-    prompt: 'mock prompt',
-    model: 'gemini-test',
-    events,
-    rawHistory: [],
-    durationMs: lastTs - firstTs,
-    eventCount: events.length,
-    stats: { chunks: 0, parts: 0, signedParts: 0 },
-  };
+  return makeReplayPayload({ id, events });
 }
 
 describe('HomeComponent replay flow', () => {

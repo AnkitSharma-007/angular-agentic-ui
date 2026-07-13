@@ -12,26 +12,7 @@ import { BudgetService } from '../observability/budget.service';
 import { AgentRegistry } from '../agents/agent-registry.service';
 import { CustomToolsService } from '../custom-tools/custom-tools.service';
 import { proposeToolManifest } from '../../shared/tools/propose-tool/propose-tool.manifest';
-
-function textChunk(text: string): GeminiChunk {
-  return { candidates: [{ content: { role: 'model', parts: [{ text }] } }] };
-}
-
-function toolChunk(name: string, args: Record<string, unknown>): GeminiChunk {
-  return {
-    candidates: [
-      { content: { role: 'model', parts: [{ functionCall: { name, args } }] } },
-    ],
-  };
-}
-
-function finishChunk(reason = 'STOP'): GeminiChunk {
-  return { candidates: [{ content: { role: 'model', parts: [] }, finishReason: reason }] };
-}
-
-async function* asAsync(chunks: readonly GeminiChunk[]): AsyncIterable<GeminiChunk> {
-  for (const c of chunks) yield c;
-}
+import { asAsync, finishChunk, textChunk, toolChunk } from '../../testing/gemini-chunks';
 
 const NOOP_OPTIONS = { model: 'gemini-3-test', thinkingConfig: { thinkingLevel: 'minimal' } };
 

@@ -19,55 +19,13 @@ import { BudgetService } from '../observability/budget.service';
 import { AgentRegistry } from '../agents/agent-registry.service';
 import { HANDOFF_TOOL_NAME } from '../../shared/tools/handoff-tool/handoff-tool.manifest';
 import { z } from 'zod';
-
-function textChunk(text: string): GeminiChunk {
-  return {
-    candidates: [{ content: { role: 'model', parts: [{ text }] } }],
-  };
-}
-
-function thoughtChunk(text: string): GeminiChunk {
-  return {
-    candidates: [{ content: { role: 'model', parts: [{ text, thought: true }] } }],
-  };
-}
-
-function toolChunk(name: string, args: Record<string, unknown>, signature?: string): GeminiChunk {
-  return {
-    candidates: [
-      {
-        content: {
-          role: 'model',
-          parts: [
-            {
-              functionCall: { name, args },
-              ...(signature ? { thoughtSignature: signature } : {}),
-            },
-          ],
-        },
-      },
-    ],
-  };
-}
-
-function finishChunk(
-  reason = 'STOP',
-  usage?: {
-    readonly promptTokenCount?: number;
-    readonly candidatesTokenCount?: number;
-    readonly thoughtsTokenCount?: number;
-    readonly totalTokenCount?: number;
-  },
-): GeminiChunk {
-  return {
-    candidates: [{ content: { role: 'model', parts: [] }, finishReason: reason }],
-    usageMetadata: usage,
-  };
-}
-
-async function* asAsync(chunks: readonly GeminiChunk[]): AsyncIterable<GeminiChunk> {
-  for (const c of chunks) yield c;
-}
+import {
+  asAsync,
+  finishChunk,
+  textChunk,
+  thoughtChunk,
+  toolChunk,
+} from '../../testing/gemini-chunks';
 
 interface ToolDef {
   readonly meta: ToolMeta;

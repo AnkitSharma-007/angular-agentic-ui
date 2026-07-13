@@ -3,26 +3,7 @@ import { IDBFactory } from 'fake-indexeddb';
 import { TestBed } from '@angular/core/testing';
 import { ReplayService } from './replay.service';
 import { idbPut, openDb } from '../storage/indexeddb.helpers';
-import type { ReplayPayload } from './replay.types';
-
-function makePayload(partial: Partial<ReplayPayload> = {}): ReplayPayload {
-  return {
-    schemaVersion: 1,
-    id: partial.id ?? 'r-1',
-    title: partial.title ?? 'Test run',
-    savedAt: partial.savedAt ?? new Date('2026-05-10T10:00:00.000Z').toISOString(),
-    prompt: partial.prompt ?? 'Plan a weekend in Goa.',
-    model: partial.model ?? 'gemini-3-flash-preview',
-    events: partial.events ?? [
-      { type: 'turn_start', ts: 0, turnId: 't1' },
-      { type: 'turn_complete', ts: 100, turnId: 't1', rounds: 1, finishReason: 'STOP' },
-    ],
-    rawHistory: partial.rawHistory ?? [],
-    durationMs: partial.durationMs ?? 100,
-    eventCount: partial.eventCount ?? 2,
-    stats: partial.stats ?? { chunks: 1, parts: 1, signedParts: 0 },
-  };
-}
+import { makeReplayPayload as makePayload } from '../../testing/replay-fixtures';
 
 describe('ReplayService', () => {
   let service: ReplayService;

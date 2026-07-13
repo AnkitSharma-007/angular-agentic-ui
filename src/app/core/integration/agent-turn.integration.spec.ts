@@ -11,6 +11,7 @@ import { TokenAccountantService } from '../observability/token-accountant.servic
 import { BudgetService } from '../observability/budget.service';
 import { AgentRegistry } from '../agents/agent-registry.service';
 import type { ToolDescriptor } from '../registry/tool-descriptor';
+import { asAsync } from '../../testing/gemini-chunks';
 
 // Full-stack integration test. Wires the real `runAgentTurn`, the real
 // `ToolRegistry`, real services — only the SDK stream is faked. The fixture
@@ -89,10 +90,6 @@ const SECOND_ROUND: readonly GeminiChunk[] = [
 
 function FIRST_ROUND_USAGE_PLACEHOLDER() {
   return FIXTURE_USAGE;
-}
-
-async function* asAsync(chunks: readonly GeminiChunk[]): AsyncIterable<GeminiChunk> {
-  for (const c of chunks) yield c;
 }
 
 interface FixtureExecutor {

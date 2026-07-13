@@ -3,29 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { ToolRegistry } from './tool-registry';
 import type { ToolDescriptor, ToolManifest } from './tool-descriptor';
+import { defineToolManifest, makeToolDescriptor } from '../../testing/tool-manifest';
 
 function makeManifest(name: string, load?: () => Promise<ToolDescriptor>): ToolManifest {
-  const declaration = {
-    name,
-    description: `${name} stub`,
-    parameters: { type: 'OBJECT' as const, properties: {} },
-  };
-  return {
-    name,
-    description: `${name} stub`,
-    declaration,
-    load:
-      load ??
-      (async () =>
-        ({
-          name,
-          description: `${name} stub`,
-          declaration,
-          argsSchema: z.object({}),
-          component: null as unknown as ToolDescriptor['component'],
-          execute: async () => ({}),
-        }) as ToolDescriptor),
-  };
+  return defineToolManifest(name, load ? { load } : {});
 }
 
 describe('ToolRegistry', () => {
@@ -183,16 +164,7 @@ describe('ToolRegistry', () => {
 
 function makeDescriptor(name: string, tag?: unknown): ToolDescriptor & { tag?: unknown } {
   return {
-    name,
-    description: `${name} stub`,
-    declaration: {
-      name,
-      description: `${name} stub`,
-      parameters: { type: 'OBJECT', properties: {} },
-    },
-    argsSchema: z.any(),
-    component: null as unknown as ToolDescriptor['component'],
-    execute: async () => ({}),
+    ...makeToolDescriptor(name, { argsSchema: z.any() }),
     ...(tag !== undefined ? { tag } : {}),
   };
 }

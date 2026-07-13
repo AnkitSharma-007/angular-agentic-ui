@@ -1,25 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ReplayPayload } from './replay.types';
 import { isValidReplayPayload, parseReplayPayload, toSummary } from './replay.types';
-
-function makePayload(partial: Partial<ReplayPayload> = {}): ReplayPayload {
-  return {
-    schemaVersion: 1,
-    id: partial.id ?? 'r-1',
-    title: partial.title ?? 'Test run',
-    savedAt: partial.savedAt ?? '2026-05-10T10:00:00.000Z',
-    prompt: partial.prompt ?? 'Plan a weekend in Goa.',
-    model: partial.model ?? 'gemini-3-flash-preview',
-    events:
-      partial.events ?? [
-        { type: 'turn_start', ts: 0, turnId: 't1' } as unknown as ReplayPayload['events'][number],
-      ],
-    rawHistory: partial.rawHistory ?? [],
-    durationMs: partial.durationMs ?? 100,
-    eventCount: partial.eventCount ?? 1,
-    stats: partial.stats ?? { chunks: 1, parts: 1, signedParts: 0 },
-  };
-}
+import { makeReplayPayload as makePayload } from '../../testing/replay-fixtures';
 
 describe('parseReplayPayload / isValidReplayPayload (C2)', () => {
   it('accepts a well-formed payload and returns it unchanged', () => {

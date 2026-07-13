@@ -8,6 +8,7 @@ import { ApiKeyService } from './api-key.service';
 import { BudgetService } from '../observability/budget.service';
 import type { AgentEvent } from '../streaming/agent-event';
 import type { GeminiChunk } from '../streaming/to-agent-event.operator';
+import { asAsync } from '../../testing/gemini-chunks';
 
 // Mock dynamic SDK import; vi.hoisted shares spies with the hoisted vi.mock factory.
 const { generateContentStream, sdkConstructorCalls } = vi.hoisted(() => ({
@@ -23,10 +24,6 @@ vi.mock('@google/genai', () => ({
     }
   },
 }));
-
-async function* asAsync(chunks: readonly GeminiChunk[]): AsyncIterable<GeminiChunk> {
-  for (const c of chunks) yield c;
-}
 
 const OK_CHUNKS: readonly GeminiChunk[] = [
   { candidates: [{ content: { role: 'model', parts: [{ text: 'Hello there.' }] } }] },
