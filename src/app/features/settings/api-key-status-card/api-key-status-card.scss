@@ -20,57 +20,6 @@
   gap: 0.75rem;
 }
 
-.status-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  background-color: color-mix(in srgb, var(--mat-sys-surface-container) 60%, transparent);
-  border: 1px solid var(--mat-sys-outline-variant);
-}
-
-.status-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent);
-}
-
-.status-value {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--mat-sys-on-surface);
-
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-    color: var(--mat-sys-on-surface-variant);
-  }
-
-  &.status-value--ok {
-    color: #1f8a4b;
-
-    mat-icon {
-      color: #1f8a4b;
-    }
-  }
-}
-
-:host-context(html.theme-dark) .status-value--ok,
-html.theme-dark .status-value--ok {
-  color: #5cd58a;
-
-  mat-icon {
-    color: #5cd58a;
-  }
-}
-
 .card-warning {
   display: flex;
   align-items: flex-start;

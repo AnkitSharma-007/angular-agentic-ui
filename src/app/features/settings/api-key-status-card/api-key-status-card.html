@@ -4,20 +4,23 @@
   description="Where Atlas is keeping your key right now."
 >
   <div class="status-grid">
-    <div class="status-item">
-      <span class="status-label">Storage</span>
-      <span class="status-value">
-        <mat-icon>{{ apiKey.storage() === 'encrypted-local' ? 'enhanced_encryption' : apiKey.storage() === 'session' ? 'timer' : 'help' }}</mat-icon>
-        {{ storageLabel() }}
-      </span>
-    </div>
-    <div class="status-item">
-      <span class="status-label">In memory</span>
-      <span class="status-value" [class.status-value--ok]="apiKey.hasKey()">
-        <mat-icon>{{ apiKey.hasKey() ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-        {{ apiKey.hasKey() ? 'Yes' : 'No' }}
-      </span>
-    </div>
+    <app-metric
+      appearance="tile"
+      [bordered]="true"
+      [mono]="false"
+      label="Storage"
+      [icon]="storageIcon()"
+      [value]="storageLabel()"
+    />
+    <app-metric
+      appearance="tile"
+      [bordered]="true"
+      [mono]="false"
+      label="In memory"
+      [icon]="apiKey.hasKey() ? 'check_circle' : 'radio_button_unchecked'"
+      [value]="apiKey.hasKey() ? 'Yes' : 'No'"
+      [tone]="apiKey.hasKey() ? 'ok' : 'default'"
+    />
   </div>
   <p class="card-note">
     Session-only keys are wiped when the tab closes. Encrypted-local keys

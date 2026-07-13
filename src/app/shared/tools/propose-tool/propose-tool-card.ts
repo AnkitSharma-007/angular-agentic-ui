@@ -32,6 +32,7 @@ import {
 } from '../../../core/custom-tools/tool-draft-form';
 import type { ToolCallStatus } from '../../../core/streaming/agent-event.store';
 import { toolStatusFlags } from '../tool-card/tool-status-flags';
+import { SectionHeadComponent } from '../../ui/section-head/section-head';
 import type {
   ProposeToolArgs,
   ProposeToolDraft,
@@ -60,6 +61,7 @@ function sampleValue(type: CustomToolParameterType): unknown {
     MatIconModule,
     MatInputModule,
     MatSelectModule,
+    SectionHeadComponent,
   ],
   templateUrl: './propose-tool-card.html',
   styleUrl: './propose-tool-card.scss',

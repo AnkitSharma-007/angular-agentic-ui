@@ -1,0 +1,19 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 75%, transparent);
+}
+
+.section-meta {
+  font: 500 0.6875rem/1 var(--font-mono);
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent);
+}

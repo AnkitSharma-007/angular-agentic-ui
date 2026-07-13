@@ -42,25 +42,13 @@
       </header>
 
       <div class="metrics-row">
-        <div class="metric">
-          <span class="metric-label">Total tokens</span>
-          <strong class="metric-value">{{ fmtTokens(turnUsage().totalTokens) }}</strong>
-        </div>
-        <div class="metric">
-          <span class="metric-label">Rounds</span>
-          <strong class="metric-value">{{ turnRounds() }}</strong>
-        </div>
-        <div class="metric">
-          <span class="metric-label">Latency</span>
-          <strong class="metric-value">{{ fmtLatency(turnLatencyMs()) }}</strong>
-        </div>
+        <app-metric label="Total tokens" [value]="fmtTokens(turnUsage().totalTokens)" />
+        <app-metric label="Rounds" [value]="turnRounds()" />
+        <app-metric label="Latency" [value]="fmtLatency(turnLatencyMs())" />
       </div>
 
       <div class="section">
-        <div class="section-head">
-          <span class="section-label">Cost breakdown</span>
-          <span class="section-meta">{{ model() }}</span>
-        </div>
+        <app-section-head label="Cost breakdown" [meta]="model()" />
         <div class="stacked-bar" aria-hidden="true">
           <span
             class="stack-seg input"
@@ -83,9 +71,7 @@
       </div>
 
       <div class="section">
-        <div class="section-head">
-          <span class="section-label">Token breakdown</span>
-        </div>
+        <app-section-head label="Token breakdown" />
         <ul class="rows">
           <li>
             <span class="row-label"><span class="dot input"></span> Input</span>
@@ -103,61 +89,46 @@
       </div>
 
       <div class="section">
-        <div class="section-head">
-          <span class="section-label">Context window</span>
-          <span class="section-meta">{{ fmtTokens(pricing().contextWindow) }}</span>
-        </div>
-        <div class="bar" aria-hidden="true">
-          <span class="bar-fill" [style.width.%]="contextUtilisation() * 100"></span>
-        </div>
+        <app-section-head label="Context window" [meta]="fmtTokens(pricing().contextWindow)" />
+        <app-meter [value]="contextUtilisation()" />
         <p class="hint">{{ fmtPct(contextUtilisation()) }} of context used</p>
       </div>
 
       @if (hasBudget()) {
         <div class="section budget">
-          <div class="section-head">
-            <span class="section-label">Budget</span>
+          <app-section-head label="Budget">
             <a class="section-link" routerLink="/settings" (click)="close()">Configure</a>
-          </div>
+          </app-section-head>
           @if (budgetUtilisation().tokens !== null) {
             <div class="budget-row">
               <span class="budget-label">Tokens</span>
-              <div class="bar" aria-hidden="true">
-                <span
-                  class="bar-fill"
-                  [class.warn]="(budgetUtilisation().tokens ?? 0) > 0.75"
-                  [class.danger]="(budgetUtilisation().tokens ?? 0) >= 1"
-                  [style.width.%]="(budgetUtilisation().tokens ?? 0) * 100"
-                ></span>
-              </div>
+              <app-meter
+                [value]="budgetUtilisation().tokens ?? 0"
+                [warn]="(budgetUtilisation().tokens ?? 0) > 0.75"
+                [danger]="(budgetUtilisation().tokens ?? 0) >= 1"
+              />
               <span class="budget-pct">{{ fmtPct(budgetUtilisation().tokens ?? 0) }}</span>
             </div>
           }
           @if (budgetUtilisation().rounds !== null) {
             <div class="budget-row">
               <span class="budget-label">Rounds</span>
-              <div class="bar" aria-hidden="true">
-                <span
-                  class="bar-fill"
-                  [class.warn]="(budgetUtilisation().rounds ?? 0) > 0.75"
-                  [class.danger]="(budgetUtilisation().rounds ?? 0) >= 1"
-                  [style.width.%]="(budgetUtilisation().rounds ?? 0) * 100"
-                ></span>
-              </div>
+              <app-meter
+                [value]="budgetUtilisation().rounds ?? 0"
+                [warn]="(budgetUtilisation().rounds ?? 0) > 0.75"
+                [danger]="(budgetUtilisation().rounds ?? 0) >= 1"
+              />
               <span class="budget-pct">{{ fmtPct(budgetUtilisation().rounds ?? 0) }}</span>
             </div>
           }
           @if (budgetUtilisation().cost !== null) {
             <div class="budget-row">
               <span class="budget-label">Cost</span>
-              <div class="bar" aria-hidden="true">
-                <span
-                  class="bar-fill"
-                  [class.warn]="(budgetUtilisation().cost ?? 0) > 0.75"
-                  [class.danger]="(budgetUtilisation().cost ?? 0) >= 1"
-                  [style.width.%]="(budgetUtilisation().cost ?? 0) * 100"
-                ></span>
-              </div>
+              <app-meter
+                [value]="budgetUtilisation().cost ?? 0"
+                [warn]="(budgetUtilisation().cost ?? 0) > 0.75"
+                [danger]="(budgetUtilisation().cost ?? 0) >= 1"
+              />
               <span class="budget-pct">{{ fmtPct(budgetUtilisation().cost ?? 0) }}</span>
             </div>
           }

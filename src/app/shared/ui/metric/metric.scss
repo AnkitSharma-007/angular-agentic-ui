@@ -1,0 +1,72 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+:host(.full) {
+  grid-column: 1 / -1;
+}
+
+// Tile: a self-contained stat surface (observability detail grid, settings).
+:host([data-appearance='tile']) {
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-sm, 8px);
+  background: color-mix(in srgb, var(--mat-sys-surface-container-highest) 70%, transparent);
+}
+
+:host([data-appearance='tile'].bordered) {
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 60%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-surface-container) 60%, transparent);
+}
+
+.metric-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent);
+}
+
+.metric-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--mat-sys-on-surface);
+  font-weight: 600;
+  line-height: var(--leading-tight, 1.1);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+:host([data-size='sm']) .metric-value {
+  font-size: 0.8125rem;
+}
+
+:host([data-size='md']) .metric-value {
+  font-size: 0.9375rem;
+}
+
+:host([data-size='lg']) .metric-value {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+:host(.mono) .metric-value {
+  font-family: var(--font-mono);
+}
+
+:host([data-tone='ok']) .metric-value {
+  color: var(--status-success);
+
+  mat-icon {
+    color: var(--status-success);
+  }
+}

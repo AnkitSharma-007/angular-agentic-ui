@@ -4,6 +4,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 
+import { MetricComponent } from '../ui/metric/metric';
+import { SectionHeadComponent } from '../ui/section-head/section-head';
+import { MeterComponent } from '../ui/meter/meter';
 import { TokenAccountantService } from '../../core/observability/token-accountant.service';
 import { BudgetService } from '../../core/observability/budget.service';
 import { ObservabilityDrawerService } from '../../core/observability/observability-drawer.service';
@@ -15,7 +18,15 @@ import { ZERO_USAGE } from '../../core/observability/usage.types';
 
 @Component({
   selector: 'app-cost-meter',
-  imports: [MatIconModule, MatButtonModule, RouterLink, CdkTrapFocus],
+  imports: [
+    MatIconModule,
+    MatButtonModule,
+    RouterLink,
+    CdkTrapFocus,
+    MetricComponent,
+    SectionHeadComponent,
+    MeterComponent,
+  ],
   templateUrl: './cost-meter.html',
   styleUrl: './cost-meter.scss',
 })

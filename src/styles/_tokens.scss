@@ -72,6 +72,11 @@
   // surfaces styled to a specific agent (e.g. the Experience Curator tool cards).
   --accent-curator-1: #ff6ec7; // pink
   --accent-curator-2: #ffae5c; // amber
+
+  // --- Status ----------------------------------------------------------------
+  // Semantic success colour (e.g. an "ok" metric value). Dark-first; the
+  // html.theme-light block below darkens it for contrast on light surfaces.
+  --status-success: #5cd58a;
 }
 
 // Light-mode tuning: the dark-tuned neon mint/cyan wash out on a light surface,
@@ -81,4 +86,5 @@
 html.theme-light {
   --viz-input: #10b39b; //     deeper teal-green
   --viz-input-end: #0596b8; // deeper cyan
+  --status-success: #1f8a4b; // darker green for contrast on light
 }

@@ -37,22 +37,10 @@
     </section>
   } @else {
     <section class="summary">
-      <div class="summary-metric">
-        <span class="metric-label">Cost</span>
-        <strong class="metric-value">{{ fmtUsd(totalCost()) }}</strong>
-      </div>
-      <div class="summary-metric">
-        <span class="metric-label">Tokens</span>
-        <strong class="metric-value">{{ fmtTokens(totalTokens()) }}</strong>
-      </div>
-      <div class="summary-metric">
-        <span class="metric-label">Rounds</span>
-        <strong class="metric-value">{{ roundCount() }}</strong>
-      </div>
-      <div class="summary-metric">
-        <span class="metric-label">Latency</span>
-        <strong class="metric-value">{{ fmtLatency(totalLatency()) }}</strong>
-      </div>
+      <app-metric label="Cost" [value]="fmtUsd(totalCost())" size="lg" />
+      <app-metric label="Tokens" [value]="fmtTokens(totalTokens())" size="lg" />
+      <app-metric label="Rounds" [value]="roundCount()" size="lg" />
+      <app-metric label="Latency" [value]="fmtLatency(totalLatency())" size="lg" />
     </section>
 
     <p class="stream-stats" aria-label="Stream statistics">
@@ -132,7 +120,7 @@
             </p>
           } @else if (sel.usage; as u) {
             <div class="usage-section">
-              <span class="section-label">Token usage</span>
+              <app-section-head label="Token usage" />
               <ul class="usage-rows">
                 <li><span class="ur-dot input"></span> Input <strong>{{ fmtTokens(u.inputTokens) }}</strong></li>
                 <li><span class="ur-dot output"></span> Output <strong>{{ fmtTokens(u.outputTokens) }}</strong></li>

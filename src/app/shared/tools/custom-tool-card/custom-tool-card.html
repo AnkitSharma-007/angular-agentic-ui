@@ -31,7 +31,7 @@
 
     @if (argEntries().length > 0) {
       <div class="section">
-        <span class="section-label">Arguments</span>
+        <app-section-head label="Arguments" />
         <ul class="args">
           @for (entry of argEntries(); track entry[0]) {
             <li>
@@ -45,7 +45,7 @@
 
     @if (status() === 'complete' && responseNode(); as node) {
       <div class="section">
-        <span class="section-label">Response</span>
+        <app-section-head label="Response" />
 
         @if (node.kind === 'scalar') {
           <p class="response-text">{{ node.text }}</p>

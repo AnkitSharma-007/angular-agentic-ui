@@ -13,6 +13,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 
+import { MetricComponent } from '../ui/metric/metric';
+import { SectionHeadComponent } from '../ui/section-head/section-head';
 import { ObservabilityService, type TimelineRow } from '../../core/observability/observability.service';
 import { ObservabilityDrawerService } from '../../core/observability/observability-drawer.service';
 import { TokenAccountantService } from '../../core/observability/token-accountant.service';
@@ -26,7 +28,7 @@ interface RenderedRow extends TimelineRow {
 
 @Component({
   selector: 'app-observability-drawer',
-  imports: [MatIconModule, MatButtonModule, CdkTrapFocus],
+  imports: [MatIconModule, MatButtonModule, CdkTrapFocus, MetricComponent, SectionHeadComponent],
   templateUrl: './observability-drawer.html',
   styleUrl: './observability-drawer.scss',
 })

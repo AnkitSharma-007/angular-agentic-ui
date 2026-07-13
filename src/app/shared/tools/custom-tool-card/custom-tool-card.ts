@@ -2,6 +2,7 @@ import { Component, computed, input, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { SectionHeadComponent } from '../../ui/section-head/section-head';
 import type { ToolCallStatus } from '../../../core/streaming/agent-event.store';
 
 interface ValueEntry {
@@ -22,7 +23,7 @@ const TITLE_KEYS = ['name', 'title', 'label'] as const;
 
 @Component({
   selector: 'app-custom-tool-card',
-  imports: [NgTemplateOutlet, MatCardModule, MatIconModule],
+  imports: [NgTemplateOutlet, MatCardModule, MatIconModule, SectionHeadComponent],
   templateUrl: './custom-tool-card.html',
   styleUrl: './custom-tool-card.scss',
 })
