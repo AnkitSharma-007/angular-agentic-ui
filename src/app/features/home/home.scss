@@ -70,7 +70,7 @@
 }
 
 .response-card {
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   @include glass-card;
   box-shadow: 0 12px 32px -24px var(--app-shadow-color, rgba(0, 0, 0, 0.5));
   animation: response-in 0.4s ease-out;
@@ -78,17 +78,17 @@
   mat-card-content {
     padding: 1.25rem 1.5rem;
     font-size: 15px;
-    line-height: 1.6;
+    line-height: var(--leading-relaxed);
   }
 }
 
 .banner {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  font-size: 14px;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
   border: 1px solid var(--mat-sys-outline-variant);
 
   .banner-text {
@@ -98,11 +98,11 @@
 
   .banner-action {
     flex: 0 0 auto;
-    margin-left: 0.5rem;
+    margin-left: var(--space-2);
 
     .material-symbols-outlined {
       font-size: 18px;
-      margin-right: 0.25rem;
+      margin-right: var(--space-1);
       vertical-align: text-bottom;
     }
   }
@@ -184,13 +184,13 @@
   flex-direction: column;
   gap: 0.55rem;
   margin-top: auto;
-  padding-top: 1rem;
+  padding-top: var(--space-4);
 }
 
 .composer-secondary-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 

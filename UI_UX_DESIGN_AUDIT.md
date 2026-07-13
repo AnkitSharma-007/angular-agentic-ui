@@ -227,7 +227,7 @@ Ordered into **independently shippable phases** — each leaves the app fully wo
 | 1 | ✅ **Done** | Accessibility & motion safety net | P1-4, P1-6 | Quick win | Low | `fix(a11y): reduced-motion safety net + 44px touch targets` |
 | 2 | ✅ **Done** | Hide the machinery / product voice-lite | P0-1 (mechanical) | Quick win | Low | `refactor(ux): move telemetry into observability drawer, lead with product voice` |
 | 3 | ✅ **Done** | Theme correctness & style cleanup | P1-5, P1-8, P1-9 (dedupe), P2-10 | Quick win | Low | `fix(theme): sync theme-color, fix system shadows, solidify labels, dedupe styles` |
-| 4 | ⬜ Pending | Design-token foundation | P0-2 | Overhaul | Med | `refactor(styles): introduce spacing/radius/type design tokens` |
+| 4 | ✅ **Done** | Design-token foundation | P0-2 | Overhaul | Med | `refactor(styles): introduce spacing/radius/type design tokens` |
 | 5 | ⬜ Pending | Color tokenization + light-mode pass | P0-3 | Overhaul | Med-High | `refactor(theme): tokenize brand/chart colors + light-mode design pass` |
 | 6 | ⬜ Pending | Component consolidation | P1-9 (full) | Overhaul | Med | `refactor(ui): consolidate badge/metric/section/bar primitives` |
 | 7 | ⬜ Pending | Layout rhythm & responsive system | P1-7 | Overhaul | Med | `refactor(layout): canonical breakpoints + intentional hero layout` |
@@ -311,9 +311,16 @@ fix(theme): sync theme-color, fix system shadows, solidify functional labels, de
 Includes-AI-Code: true
 ```
 
-### Phase 4 — Design-token foundation
+### Phase 4 — Design-token foundation — ✅ Done (2026-07-13)
 **Goal:** Introduce the token system. **Intentionally visually neutral** — this commit should not change the look.
 **Addresses:** P0-2.
+
+> **Implemented (2026-07-13):**
+> - Added `src/styles/_tokens.scss` (documented at the top): spacing `--space-1..8` (4px base), radius `--radius-sm/md/lg/xl` (8/12/16/24), a rem-based type ramp `--text-xs..2xl`, and `--leading-tight/snug/normal/relaxed`. Wired globally via `@use './styles/tokens'` in `styles.scss` (verified emitted into `:root` in the compiled CSS).
+> - Pilot-adopted the tokens in `app.scss`, `home.scss`, `hero.scss`, and `_mixins.scss` — **only where the token value is an exact equivalent** of the literal it replaced (e.g. `1.5rem→var(--space-5)`, `16px→var(--radius-lg)`, `14px→var(--text-sm)`, `1.6→var(--leading-relaxed)`).
+> - **Neutrality:** guaranteed by exact-value equivalence rather than screenshots (no live render here). Token values were confirmed identical to the replaced literals; at the default 16px root the rem type tokens equal the prior px values. (At a non-default browser font size the rem tokens will scale — the intended accessibility win, not a regression.)
+> - **Validation:** `npm run build` → clean + tokens present in `:root`; `npm test` → 619/619 passing.
+> - **Note:** Colour tokens are deliberately excluded here — brand/chart hex→token work + light-mode pass is Phase 5.
 **Scope:**
 - Add `src/styles/_tokens.scss`: `--space-1..8` (4px base), `--radius-sm/md/lg/xl` (8/12/16/24), a type ramp (`--text-xs..2xl` + line-heights). Standardize on **rem** for type.
 - Pilot-adopt tokens in a small, representative set (`app.scss`, `home.scss`, `hero.scss`, `_mixins.scss`) to prove them and set conventions.

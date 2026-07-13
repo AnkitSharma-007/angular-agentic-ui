@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@use './styles/tokens';
 
 :root {
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
