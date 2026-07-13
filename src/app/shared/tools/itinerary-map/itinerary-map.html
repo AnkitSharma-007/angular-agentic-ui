@@ -83,12 +83,12 @@
       } @loading (after 100ms; minimum 300ms) {
         <div class="skeleton-map loading-map" aria-hidden="true">
           <mat-progress-bar mode="indeterminate" class="tool-card-progress" />
-          <span class="skeleton-hint">Loading Leaflet…</span>
+          <span class="skeleton-hint">Loading map…</span>
         </div>
       } @error {
         <div class="tool-error-banner">
           <span class="material-symbols-outlined" aria-hidden="true">error</span>
-          <span>Map module failed to load.</span>
+          <span>Couldn't load the map.</span>
         </div>
       }
 

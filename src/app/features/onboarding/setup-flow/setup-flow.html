@@ -3,7 +3,7 @@
     eyebrow="Get started · ~30 seconds"
     titleLead="Bring your own"
     titleAccent="Gemini key."
-    subtitle="Your key is never sent to our servers — it's stored only on this device and used to call Google's Gemini API directly from your browser. The entire agent loop runs on your device."
+    subtitle="Your key is never sent to our servers — it stays on this device and is used to call Google's Gemini API directly from your browser. Everything runs locally."
   />
 
   <app-trust-strip />
@@ -43,12 +43,10 @@
       </mat-slide-toggle>
       <p class="storage-hint">
         @if (model().remember) {
-          Stored encrypted in <code>localStorage</code> via WebCrypto AES-GCM.
-          You'll be asked for this passphrase next time you open the app.
-          <strong>It is not recoverable.</strong>
+          Encrypted on this device with your passphrase. You'll enter it next
+          time you open the app. <strong>It can't be recovered.</strong>
         } @else {
-          Held in memory and <code>sessionStorage</code> for this tab. Wiped
-          when the tab closes.
+          Kept only for this browser tab and wiped when you close it.
         }
       </p>
     </div>
