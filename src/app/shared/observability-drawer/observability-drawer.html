@@ -55,6 +55,11 @@
       </div>
     </section>
 
+    <p class="stream-stats" aria-label="Stream statistics">
+      <span class="stream-label">Stream</span>
+      {{ streamStats().chunks }} chunks · {{ streamStats().parts }} parts · {{ streamStats().signedParts }} signed
+    </p>
+
     <section class="waterfall" aria-label="Round and tool-call waterfall">
       <header class="wf-head">
         <span class="wf-title">Timeline</span>

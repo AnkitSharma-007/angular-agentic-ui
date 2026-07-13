@@ -16,6 +16,7 @@ import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { ObservabilityService, type TimelineRow } from '../../core/observability/observability.service';
 import { ObservabilityDrawerService } from '../../core/observability/observability-drawer.service';
 import { TokenAccountantService } from '../../core/observability/token-accountant.service';
+import { AgentEventStore } from '../../core/streaming/agent-event.store';
 import { formatTokens, formatUsd } from '../../core/observability/pricing';
 
 interface RenderedRow extends TimelineRow {
@@ -33,10 +34,13 @@ export class ObservabilityDrawerComponent {
   protected readonly drawer = inject(ObservabilityDrawerService);
   protected readonly observability = inject(ObservabilityService);
   protected readonly accountant = inject(TokenAccountantService);
+  private readonly store = inject(AgentEventStore);
 
   protected readonly isOpen = this.drawer.isOpen;
   protected readonly currentTurn = this.accountant.currentTurn;
   protected readonly selectedRow = this.observability.selectedRow;
+  // Low-level stream telemetry, relocated here out of the primary flow.
+  protected readonly streamStats = this.store.stats;
 
   // Aside stays mounted for slide transition — manual focus management instead of cdkTrapFocus auto-capture.
   private readonly closeBtn = viewChild<ElementRef<HTMLButtonElement>>('closeBtn');

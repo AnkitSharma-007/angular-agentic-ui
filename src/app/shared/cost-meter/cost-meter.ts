@@ -77,6 +77,16 @@ export class CostMeterComponent {
   protected readonly pillCost = computed(() => formatUsd(this.turnCost()));
   protected readonly pillTokens = computed(() => formatTokens(this.turnUsage().totalTokens));
 
+  // Keep the floating pill hidden until there's real spend to report — a first-time
+  // user shouldn't see a "$0.000" instrument-panel chip before they've done anything.
+  protected readonly visible = computed(
+    () =>
+      this.isStreaming() ||
+      this.turnUsage().totalTokens > 0 ||
+      this.turnCost() > 0 ||
+      this.lifetimeTotals().totalTokens > 0,
+  );
+
   protected toggle(): void {
     this.expanded.update((e) => !e);
   }

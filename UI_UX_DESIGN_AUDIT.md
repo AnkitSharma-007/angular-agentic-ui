@@ -225,7 +225,7 @@ Ordered into **independently shippable phases** — each leaves the app fully wo
 | Phase | Status | Theme | Issues | Type | Risk | Suggested commit |
 | :---: | :---: | --- | --- | --- | :---: | --- |
 | 1 | ✅ **Done** | Accessibility & motion safety net | P1-4, P1-6 | Quick win | Low | `fix(a11y): reduced-motion safety net + 44px touch targets` |
-| 2 | ⬜ Pending | Hide the machinery / product voice-lite | P0-1 (mechanical) | Quick win | Low | `refactor(ux): move telemetry into observability drawer, lead with product voice` |
+| 2 | ✅ **Done** | Hide the machinery / product voice-lite | P0-1 (mechanical) | Quick win | Low | `refactor(ux): move telemetry into observability drawer, lead with product voice` |
 | 3 | ⬜ Pending | Theme correctness & style cleanup | P1-5, P1-8, P1-9 (dedupe), P2-10 | Quick win | Low | `fix(theme): sync theme-color, fix system shadows, solidify labels, dedupe styles` |
 | 4 | ⬜ Pending | Design-token foundation | P0-2 | Overhaul | Med | `refactor(styles): introduce spacing/radius/type design tokens` |
 | 5 | ⬜ Pending | Color tokenization + light-mode pass | P0-3 | Overhaul | Med-High | `refactor(theme): tokenize brand/chart colors + light-mode design pass` |
@@ -259,9 +259,19 @@ fix(a11y): reduced-motion safety net and 44px touch targets
 Includes-AI-Code: true
 ```
 
-### Phase 2 — Hide the machinery / product voice-lite
+### Phase 2 — Hide the machinery / product voice-lite — ✅ Done (2026-07-13)
 **Goal:** Stop the primary flow from reading like an instrument panel. Template/copy only.
 **Addresses:** P0-1 (mechanical portion; deep copy rewrite is Phase 8).
+
+> **Implemented (2026-07-13):**
+> - Streaming indicator: replaced `Atlas is thinking… / chunks·parts·signed` with an agent-aware human status (`streamingStatus()` → "Planning your trip…" / "Curating experiences…") plus a reassuring subline (`home.ts`, `home.html`).
+> - Removed the post-run `chunks · parts · signed` stats line from the home view entirely (`home.html`).
+> - Relocated the raw stream telemetry into the observability drawer as a subtle "Stream · N chunks · N parts · N signed" caption (drawer now injects `AgentEventStore`; `observability-drawer.ts/.html/.scss`).
+> - Floating cost pill is now gated behind a `visible()` computed — hidden until streaming or real spend exists, so a first-time user never sees a `$0.000` chip (`cost-meter.ts/.html`).
+> - Hero eyebrow: "Live · streaming pipeline online" → "Live · AI that shows its work" (`hero.html`).
+> - Updated two cost-meter specs to the new hidden-until-active contract.
+> - **Validation:** `npm test` → 619/619 passing; `npm run build` → clean.
+> - **Note:** Deep copy/voice rewrite (headline, subtitle, tone) is deliberately deferred to Phase 8.
 **Scope:**
 - Remove inline `chunks/parts/signed` from the default view (`home.html:50-54, 101-106`); replace the streaming indicator with human status text ("Planning your trip…"). Keep the raw stats available inside the observability drawer only.
 - Hide the floating cost pill until `turnCost > 0` (or add a Settings toggle) — `app.html` / `cost-meter`.

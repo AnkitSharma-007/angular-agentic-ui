@@ -46,13 +46,8 @@
           <span></span><span></span><span></span><span></span><span></span>
         </div>
         <div class="streaming-text">
-          <strong>Atlas is thinking…</strong>
-          <span class="muted">
-            chunks {{ stats().chunks }} · parts {{ stats().parts }}
-            @if (stats().signedParts > 0) {
-              · signed {{ stats().signedParts }}
-            }
-          </span>
+          <strong>{{ streamingStatus() }}</strong>
+          <span class="muted">Hang tight — this can take a few moments.</span>
         </div>
       </div>
     }
@@ -96,13 +91,6 @@
           <a routerLink="/settings">Adjust budget</a>
         </div>
       </div>
-    }
-
-    @if (phase() === 'complete' || phase() === 'cancelled' || phase() === 'error') {
-      <p class="stats">
-        <span class="material-symbols-outlined" aria-hidden="true">data_check</span>
-        chunks {{ stats().chunks }} · parts {{ stats().parts }} · signed {{ stats().signedParts }}
-      </p>
     }
 
     <form class="composer-form" (submit)="$event.preventDefault()">

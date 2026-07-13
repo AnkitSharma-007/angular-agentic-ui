@@ -19,13 +19,14 @@ describe('CostMeterComponent', () => {
     });
   });
 
-  it('renders the pill with formatted values when no rounds have run', async () => {
+  it('stays hidden until there is real spend to report', async () => {
     const fixture = TestBed.createComponent(CostMeterComponent);
     await fixture.whenStable();
 
-    const text = fixture.nativeElement.textContent ?? '';
-    expect(text).toContain('tok');
-    expect(text).toContain('$0');
+    // No rounds and not streaming — the floating pill should not render at all,
+    // so a first-time user never sees a "$0.000" instrument-panel chip.
+    const pill = (fixture.nativeElement as HTMLElement).querySelector('.pill');
+    expect(pill).toBeNull();
   });
 
   it('toggle() flips the expanded panel state', async () => {
@@ -80,6 +81,19 @@ describe('CostMeterComponent', () => {
   });
 
   it('expanded panel is marked as a modal dialog with focus trapping enabled', async () => {
+    // Give the meter real spend so the pill (and its panel) render.
+    const tokens = TestBed.inject(TokenAccountantService);
+    tokens.beginTurn('t1');
+    tokens.recordRound({
+      turnId: 't1',
+      roundIndex: 0,
+      startedAt: 100,
+      completedAt: 250,
+      usage: { inputTokens: 50, outputTokens: 25, thoughtTokens: 5, totalTokens: 80 },
+      model: 'gemini-3.5-flash',
+      finishReason: 'STOP',
+    });
+
     const fixture = TestBed.createComponent(CostMeterComponent);
     await fixture.whenStable();
     const inst = fixture.componentInstance as unknown as {

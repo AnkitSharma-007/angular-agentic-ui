@@ -161,6 +161,20 @@ export class HomeComponent implements OnInit {
     return turn.text.length > 0 || turn.attachments.length > 0;
   });
 
+  // Human-readable "what's happening" line for the initial thinking state — keeps
+  // raw stream telemetry (chunks/parts) out of the primary flow (it lives in the
+  // observability drawer). Reads from the active agent so handoffs update the copy.
+  protected readonly streamingStatus = computed(() => {
+    switch (this.agents.activeAgentId()) {
+      case 'tripPlanner':
+        return 'Planning your trip…';
+      case 'experienceCurator':
+        return 'Curating experiences…';
+      default:
+        return 'Working on it…';
+    }
+  });
+
   private readonly cancel$ = new Subject<void>();
 
   ngOnInit(): void {
