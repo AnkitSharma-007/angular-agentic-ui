@@ -2,9 +2,9 @@
 <mat-card
   class="propose-card"
   appearance="outlined"
-  [class.pending]="isPending()"
-  [class.registered]="isComplete()"
-  [class.rejected]="isRejected()"
+  [class.pending]="flags.isPending()"
+  [class.registered]="flags.isComplete()"
+  [class.rejected]="flags.isRejected()"
 >
   <mat-card-header>
     <div class="tool-header-row">
@@ -46,7 +46,7 @@
     </div>
   </mat-card-header>
 
-  @if (isPending()) {
+  @if (flags.isPending()) {
     <mat-card-content>
       @if (interruptReason()) {
         <p class="reason">{{ interruptReason() }}</p>
@@ -199,13 +199,13 @@
     </mat-card-actions>
   }
 
-  @if (isRunning()) {
+  @if (flags.isRunning()) {
     <mat-card-content>
       <p class="working-line">Registering <code>{{ draftName() }}</code>…</p>
     </mat-card-content>
   }
 
-  @if (isComplete() && result()?.selected; as selected) {
+  @if (flags.isComplete() && result()?.selected; as selected) {
     <mat-card-content>
       <p class="registered-line">
         <mat-icon aria-hidden="true">check_circle</mat-icon>
@@ -220,7 +220,7 @@
     </mat-card-content>
   }
 
-  @if (isRejected()) {
+  @if (flags.isRejected()) {
     <mat-card-content>
       <p class="rejected-line">
         You declined this tool. The agent saw the rejection
@@ -232,7 +232,7 @@
     </mat-card-content>
   }
 
-  @if (isError()) {
+  @if (flags.isError()) {
     <mat-card-content>
       <div class="tool-error-banner">
         <mat-icon aria-hidden="true">error</mat-icon>

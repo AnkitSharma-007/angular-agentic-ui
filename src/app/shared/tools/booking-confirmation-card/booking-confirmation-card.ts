@@ -1,10 +1,4 @@
-import {
-  Component,
-  computed,
-  inject,
-  input,
-  signal,
-} from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { InterruptService } from '../../../core/registry/interrupt.service';
 import { formatCurrency } from '../../formatting/format';
+import { toolStatusFlags } from '../tool-card/tool-status-flags';
 import type { BookFlightArgs, BookFlightResult } from './booking-confirmation-card.types';
 
 @Component({
@@ -40,11 +35,7 @@ export class BookingConfirmationCardComponent {
   readonly errorMessage = input<string | null>(null);
   readonly interruptReason = input<string | null>(null);
 
-  protected readonly isPending = computed(() => this.status() === 'pending_approval');
-  protected readonly isRunning = computed(() => this.status() === 'running');
-  protected readonly isComplete = computed(() => this.status() === 'complete');
-  protected readonly isRejected = computed(() => this.status() === 'rejected');
-  protected readonly isError = computed(() => this.status() === 'error');
+  protected readonly flags = toolStatusFlags(this.status);
 
   protected readonly showRejectNote = signal(false);
   protected readonly rejectionNote = signal('');

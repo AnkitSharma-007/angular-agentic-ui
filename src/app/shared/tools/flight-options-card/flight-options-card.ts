@@ -5,6 +5,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import type { ToolCallStatus } from '../../../core/streaming/agent-event.store';
 import { formatCurrency } from '../../formatting/format';
+import { toolStatusFlags } from '../tool-card/tool-status-flags';
 import type { SearchFlightsArgs, SearchFlightsResult } from './flight-options-card.types';
 
 @Component({
@@ -21,11 +22,7 @@ export class FlightOptionsCardComponent {
   readonly status = input.required<ToolCallStatus>();
   readonly errorMessage = input<string | null>(null);
 
-  protected readonly isRunning = computed(() => this.status() === 'running');
-  protected readonly isComplete = computed(() => this.status() === 'complete');
-  protected readonly isError = computed(() => this.status() === 'error');
-  protected readonly isPending = computed(() => this.status() === 'pending_approval');
-  protected readonly isRejected = computed(() => this.status() === 'rejected');
+  protected readonly flags = toolStatusFlags(this.status);
 
   protected readonly flights = computed(() => this.result()?.flights ?? []);
 

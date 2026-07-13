@@ -31,7 +31,7 @@
     </div>
   </mat-card-header>
 
-  @if (isPending()) {
+  @if (flags.isPending()) {
     <mat-card-content>
       <div class="tool-pending-banner">
         <span class="material-symbols-outlined" aria-hidden="true">pending</span>
@@ -40,7 +40,7 @@
     </mat-card-content>
   }
 
-  @if (isRejected()) {
+  @if (flags.isRejected()) {
     <mat-card-content>
       <div class="tool-rejected-banner">
         <span class="material-symbols-outlined" aria-hidden="true">do_not_disturb_on</span>
@@ -49,7 +49,7 @@
     </mat-card-content>
   }
 
-  @if (isRunning()) {
+  @if (flags.isRunning()) {
     <mat-progress-bar mode="indeterminate" class="tool-card-progress" />
     <mat-card-content>
       <div class="skeleton-list">
@@ -64,7 +64,7 @@
     </mat-card-content>
   }
 
-  @if (isComplete()) {
+  @if (flags.isComplete()) {
     <mat-card-content>
       <ul class="flight-list">
         @for (flight of flights(); track flight.id) {
@@ -102,7 +102,7 @@
     </mat-card-content>
   }
 
-  @if (isError()) {
+  @if (flags.isError()) {
     <mat-card-content>
       <div class="tool-error-banner">
         <span class="material-symbols-outlined" aria-hidden="true">error</span>

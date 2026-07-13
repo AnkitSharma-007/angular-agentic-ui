@@ -24,6 +24,7 @@ import {
   type CustomToolParameterType,
 } from '../../../core/custom-tools/custom-tool.types';
 import type { ToolCallStatus } from '../../../core/streaming/agent-event.store';
+import { toolStatusFlags } from '../tool-card/tool-status-flags';
 import type {
   ProposeToolArgs,
   ProposeToolDraft,
@@ -89,11 +90,7 @@ export class ProposeToolCardComponent {
 
   protected readonly typeOptions = TYPE_OPTIONS;
 
-  protected readonly isPending = computed(() => this.status() === 'pending_approval');
-  protected readonly isRunning = computed(() => this.status() === 'running');
-  protected readonly isComplete = computed(() => this.status() === 'complete');
-  protected readonly isRejected = computed(() => this.status() === 'rejected');
-  protected readonly isError = computed(() => this.status() === 'error');
+  protected readonly flags = toolStatusFlags(this.status);
 
   // Writable Signal Forms copy; `linkedSignal` re-seeds from fixed per-call args for live edits before approval.
   protected readonly draftModel = linkedSignal<DraftForm>(() => {
