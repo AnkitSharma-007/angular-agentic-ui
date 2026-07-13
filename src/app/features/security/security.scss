@@ -254,7 +254,7 @@ code {
   word-break: break-all;
 }
 
-@media (max-width: 480px) {
+@include below(phone) {
   .hero-row {
     gap: 0.75rem;
   }

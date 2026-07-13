@@ -1,6 +1,32 @@
 // Shared SCSS mixins. Values here mirror the previously-duplicated declarations
 // exactly, so including a mixin is behavior-preserving for existing call sites.
 
+@use 'sass:map';
+
+// Canonical responsive breakpoints — the single source of truth for every media
+// query in the app. Scattered ad-hoc widths (520/560/600/620/720/760/920…) were
+// consolidated onto these four so components reflow at shared, predictable points.
+$breakpoints: (
+  phone: 480px, // small phones
+  sm: 640px, // large phones / phablet
+  tablet: 768px, // tablets
+  desktop: 1024px, // small desktop and up
+);
+
+// Styles apply at the named breakpoint and below (max-width).
+@mixin below($name) {
+  @media (max-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}
+
+// Styles apply from the named breakpoint and up (min-width).
+@mixin from($name) {
+  @media (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}
+
 // Frosted Material outlined-card surface used by full-width page/response cards.
 @mixin glass-card($blur: 12px) {
   --mat-card-outlined-container-color: color-mix(in srgb, var(--mat-sys-surface) 70%, transparent);
@@ -36,7 +62,7 @@
   padding-top: var(--space-3);
   flex-wrap: wrap;
 
-  @media (max-width: 480px) {
+  @include below(phone) {
     flex-direction: column-reverse;
     align-items: stretch;
 

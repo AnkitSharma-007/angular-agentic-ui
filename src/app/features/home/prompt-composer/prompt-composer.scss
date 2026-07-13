@@ -1,3 +1,5 @@
+@use '../../../../styles/mixins' as *;
+
 :host {
   display: contents;
 }
@@ -384,7 +386,7 @@
   color: var(--mat-sys-error);
 }
 
-@media (max-width: 480px) {
+@include below(phone) {
   // Keep the primary action at a full 44px tap target on mobile (WCAG 2.5.5) —
   // this is the device where the composer is most touch-driven.
   .kbd-hint-label {

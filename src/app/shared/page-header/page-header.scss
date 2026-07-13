@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 :host {
   display: block;
 }
@@ -54,7 +56,7 @@
   text-wrap: pretty;
 }
 
-@media (max-width: 640px) {
+@include below(sm) {
   .page-header {
     flex-direction: column;
     align-items: stretch;

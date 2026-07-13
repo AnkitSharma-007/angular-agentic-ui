@@ -116,7 +116,7 @@
     border-bottom: 0;
   }
 
-  @media (max-width: 480px) {
+  @include below(phone) {
     grid-template-columns: 1fr auto;
     grid-template-areas:
       'time price'

@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 :host {
   position: fixed;
   inset: 0;
@@ -443,7 +445,7 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-@media (max-width: 640px) {
+@include below(sm) {
   .summary {
     grid-template-columns: repeat(2, 1fr);
   }

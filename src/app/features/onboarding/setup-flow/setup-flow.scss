@@ -68,7 +68,7 @@ mat-icon[matPrefix] {
   }
 }
 
-@media (max-width: 480px) {
+@include below(phone) {
   .storage-row {
     padding: 0.75rem 0.85rem;
   }

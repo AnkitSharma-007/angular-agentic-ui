@@ -238,7 +238,7 @@ code {
   border: 1px solid var(--mat-sys-outline-variant);
 }
 
-@media (max-width: 480px) {
+@include below(phone) {
   .feature-head {
     flex-wrap: wrap;
   }

@@ -252,9 +252,9 @@ Ordered into **independently shippable phases** — each leaves the app fully wo
 |   2   | ✅ **Done** | Hide the machinery / product voice-lite | P0-1 (mechanical)                | Quick win |   Low    | `refactor(ux): move telemetry into observability drawer, lead with product voice`  |
 |   3   | ✅ **Done** | Theme correctness & style cleanup       | P1-5, P1-8, P1-9 (dedupe), P2-10 | Quick win |   Low    | `fix(theme): sync theme-color, fix system shadows, solidify labels, dedupe styles` |
 |   4   | ✅ **Done** | Design-token foundation                 | P0-2                             | Overhaul  |   Med    | `refactor(styles): introduce spacing/radius/type design tokens`                    |
-|   5   | ⬜ Pending  | Color tokenization + light-mode pass    | P0-3                             | Overhaul  | Med-High | `refactor(theme): tokenize brand/chart colors + light-mode design pass`            |
-|   6   | ⬜ Pending  | Component consolidation                 | P1-9 (full)                      | Overhaul  |   Med    | `refactor(ui): consolidate badge/metric/section/bar primitives`                    |
-|   7   | ⬜ Pending  | Layout rhythm & responsive system       | P1-7                             | Overhaul  |   Med    | `refactor(layout): canonical breakpoints + intentional hero layout`                |
+|   5   | ✅ **Done** | Color tokenization + light-mode pass    | P0-3                             | Overhaul  | Med-High | `refactor(theme): tokenize brand/chart colors + light-mode design pass`            |
+|   6   | ✅ **Done** | Component consolidation                 | P1-9 (full)                      | Overhaul  |   Med    | `refactor(ui): consolidate badge/metric/section/bar primitives`                    |
+|   7   | ✅ **Done** | Layout rhythm & responsive system       | P1-7                             | Overhaul  |   Med    | `refactor(layout): canonical breakpoints + intentional hero layout`                |
 |   8   | ⬜ Pending  | Voice/copy + type-ramp application      | P0-1 (depth), P2-11              | Polish    |   Low    | `polish(content): outcome-focused copy + consistent type ramp`                     |
 
 > Phases 1–3 are safe to ship on their own and already move the needle on trust/polish. If you only have time for one push, do 1–3. Phases 4–5 are the real "designed, not assembled" jump. 6–8 are elevation to world-class.
@@ -431,10 +431,23 @@ refactor(ui): consolidate badge/metric/section/bar primitives into shared compon
 Includes-AI-Code: true
 ```
 
-### Phase 7 — Layout rhythm & responsive system
+### Phase 7 — Layout rhythm & responsive system — ✅ Done (2026-07-13)
 
 **Goal:** Composed, not boxed; consistent reflow.
 **Addresses:** P1-7.
+
+> **Implemented (2026-07-13) — canonical breakpoints + restrained hero polish (user-chosen scope):**
+>
+> - **Breakpoint system:** added a `$breakpoints` map + `below($name)` / `from($name)` mixins in `src/styles/_mixins.scss` — now the single source of truth. Four canonical stops: `phone 480 · sm 640 · tablet 768 · desktop 1024`.
+> - **Refactored all 24 width-based media queries across 22 files** onto the mixins; no raw `@media (max/min-width)` remains outside the mixin definitions. Each old width mapped to the nearest canonical, preferring to _widen_ the mobile range (the safe direction for `max-width`):
+>   - `520 / 560 / 600 / 620 → sm (640)` — trust-strip, tour-banner, app error-boundary, propose-tool param grid. These four orphaned "in-between" stops now collapse at one shared point.
+>   - `720 / 760 → tablet (768)` — agent-graph node stacking, tools param grid, budget grid, and the header nav reveal (desktop nav now appears at 768, was 720).
+>   - `920 → desktop (1024)` — tools 2-column → 1-column layout.
+>   - `480 → phone` and `640 → sm` kept exact (the two most common values; zero shift).
+> - **Restrained hero polish (no full-bleed, per your choice):** more vertical presence within the column (padding top/bottom `1.5→2rem` min, `3→4.5rem` max; side padding `2→2.5rem` max), headline ceiling `4→4.25rem`, inner gap `0.9→1rem`. The hero stays inside the 1200px column.
+> - **Validation:** `npm run build` clean; `npm test` → 627/627 passing; lints clean.
+> - **⚠ Visual QA is yours:** no live render here. Do a resize sweep 360→1440px and confirm (a) the widened `sm` range reads well on small tablets — several components now switch to their compact/stacked layout up to 640px instead of 520/560/600/620, and (b) the header nav swapping to the hamburger at 768px (was 720px) looks right.
+
 **Scope:**
 
 - Define 3–4 canonical breakpoints as mixins/tokens; refactor scattered `480/520/560/600/620/640/720/760/920` queries to them.

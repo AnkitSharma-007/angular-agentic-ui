@@ -1,3 +1,5 @@
+@use '../styles/mixins' as *;
+
 :host {
   display: block;
   min-height: 100vh;
@@ -18,7 +20,7 @@
   width: 100%;
   margin: 0 auto;
 
-  @media (max-width: 480px) {
+  @include below(phone) {
     padding: var(--space-4) var(--space-3);
   }
 }
@@ -56,7 +58,7 @@
     gap: var(--space-1);
   }
 
-  @media (max-width: 600px) {
+  @include below(sm) {
     align-items: flex-start;
     flex-wrap: wrap;
 

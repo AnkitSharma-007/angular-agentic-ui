@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 :host {
   display: flex;
   flex: 1 1 auto;
@@ -65,7 +67,7 @@
   gap: 0.75rem;
 }
 
-@media (max-width: 640px) {
+@include below(sm) {
   .header-actions {
     align-self: flex-start;
   }

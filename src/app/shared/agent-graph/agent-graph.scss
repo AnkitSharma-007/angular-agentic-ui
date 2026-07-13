@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 .agent-graph {
   padding: 1rem 1.125rem;
   background:
@@ -208,7 +210,7 @@
   100% { background-position: 200% 0; }
 }
 
-@media (max-width: 720px) {
+@include below(tablet) {
   .nodes {
     flex-direction: column;
     gap: 0.625rem;

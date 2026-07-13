@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 :host {
   position: fixed;
   bottom: 1.25rem;
@@ -375,7 +377,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@include below(sm) {
   // Bottom-right collides with the composer on phones — dock below the sticky header instead.
   :host {
     top: calc(60px + env(safe-area-inset-top, 0px) + 0.5rem);
