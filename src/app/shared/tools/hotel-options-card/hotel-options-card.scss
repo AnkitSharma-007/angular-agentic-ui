@@ -1,3 +1,5 @@
+@use '../../../../styles/mixins' as *;
+
 :host {
   display: block;
 }
@@ -49,14 +51,7 @@
 
 .skeleton {
   border-radius: 6px;
-  background: linear-gradient(
-    90deg,
-    var(--mat-sys-surface-container) 0%,
-    var(--mat-sys-surface-container-high) 50%,
-    var(--mat-sys-surface-container) 100%
-  );
-  background-size: 200% 100%;
-  animation: tool-shimmer 1.4s ease-in-out infinite;
+  @include skeleton-shimmer;
 
   &.thumb {
     width: 56px;

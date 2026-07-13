@@ -1,0 +1,23 @@
+// Shared SCSS mixins. Values here mirror the previously-duplicated declarations
+// exactly, so including a mixin is behavior-preserving for existing call sites.
+
+// Frosted Material outlined-card surface used by full-width page/response cards.
+@mixin glass-card($blur: 12px) {
+  --mat-card-outlined-container-color: color-mix(in srgb, var(--mat-sys-surface) 70%, transparent);
+  --mat-card-outlined-outline-color: var(--mat-sys-outline-variant);
+  backdrop-filter: blur(#{$blur}) saturate(140%);
+  -webkit-backdrop-filter: blur(#{$blur}) saturate(140%);
+}
+
+// Shimmer placeholder fill for tool-card skeleton loaders. Relies on the global
+// `tool-shimmer` keyframes declared in styles.scss.
+@mixin skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--mat-sys-surface-container) 0%,
+    var(--mat-sys-surface-container-high) 50%,
+    var(--mat-sys-surface-container) 100%
+  );
+  background-size: 200% 100%;
+  animation: tool-shimmer 1.4s ease-in-out infinite;
+}

@@ -32,13 +32,7 @@
   }
 }
 
-.tool-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  width: 100%;
-}
+// `.tool-header-row` layout comes from the global tool styles in styles.scss.
 
 .tool-title-block {
   display: inline-flex;

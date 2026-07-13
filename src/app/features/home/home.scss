@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 :host {
   display: flex;
   flex: 1 1 auto;
@@ -536,14 +538,7 @@
 
 .response-card {
   border-radius: 16px;
-  --mat-card-outlined-container-color: color-mix(
-    in srgb,
-    var(--mat-sys-surface) 70%,
-    transparent
-  );
-  --mat-card-outlined-outline-color: var(--mat-sys-outline-variant);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  @include glass-card;
   box-shadow: 0 12px 32px -24px var(--app-shadow-color, rgba(0, 0, 0, 0.5));
   animation: response-in 0.4s ease-out;
 

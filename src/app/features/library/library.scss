@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 :host {
   display: flex;
   flex: 1 1 auto;
@@ -31,10 +33,7 @@
 .card {
   margin: 0;
   border-radius: 16px;
-  --mat-card-outlined-container-color: color-mix(in srgb, var(--mat-sys-surface) 70%, transparent);
-  --mat-card-outlined-outline-color: var(--mat-sys-outline-variant);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  @include glass-card;
 
   mat-card-content {
     padding: 1.25rem;

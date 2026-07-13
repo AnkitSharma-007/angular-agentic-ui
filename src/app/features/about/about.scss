@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 .about-page {
   display: flex;
   flex-direction: column;
@@ -10,14 +12,7 @@
 .card {
   border-radius: 16px;
   margin: 0;
-  --mat-card-outlined-container-color: color-mix(
-    in srgb,
-    var(--mat-sys-surface) 70%,
-    transparent
-  );
-  --mat-card-outlined-outline-color: var(--mat-sys-outline-variant);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  @include glass-card;
 }
 
 .hero-card {

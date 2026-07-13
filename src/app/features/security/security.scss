@@ -1,3 +1,5 @@
+@use '../../../styles/mixins' as *;
+
 .security-page {
   display: flex;
   flex-direction: column;
@@ -11,14 +13,7 @@
   margin: 0;
   border-radius: 16px;
   padding: clamp(1rem, 2.5vw, 1.5rem);
-  --mat-card-outlined-container-color: color-mix(
-    in srgb,
-    var(--mat-sys-surface) 70%,
-    transparent
-  );
-  --mat-card-outlined-outline-color: var(--mat-sys-outline-variant);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  @include glass-card;
   transition:
     border-color 200ms ease,
     box-shadow 200ms ease,
