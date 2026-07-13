@@ -1,0 +1,12 @@
+:host {
+  display: block;
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-icon[matPrefix] {
+  margin-right: 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+}

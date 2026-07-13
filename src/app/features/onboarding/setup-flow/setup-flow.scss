@@ -1,0 +1,75 @@
+@use '../../../../styles/mixins' as *;
+@use '../onboarding-card' as ob;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.onboarding-card {
+  @include ob.onboarding-card;
+}
+
+.onboarding-form {
+  @include ob.onboarding-form;
+}
+
+.onboarding-actions {
+  @include ob.onboarding-actions;
+}
+
+@include icon-label-buttons;
+
+.lede {
+  margin: 0 0 1.25rem;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--mat-sys-on-surface-variant);
+
+  a {
+    color: var(--mat-sys-primary);
+    font-weight: 500;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.key-field {
+  margin-top: 0.25rem;
+}
+
+mat-icon[matPrefix] {
+  margin-right: 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.storage-row {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container) 50%, transparent);
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.storage-hint {
+  margin: 0.5rem 0 0;
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.5;
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 1px 4px;
+    border-radius: 4px;
+    background-color: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+  }
+}
+
+@media (max-width: 480px) {
+  .storage-row {
+    padding: 0.75rem 0.85rem;
+  }
+}

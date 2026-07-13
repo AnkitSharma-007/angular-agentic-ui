@@ -1,0 +1,46 @@
+:host {
+  display: block;
+}
+
+.trust-strip {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  border-radius: 14px;
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container) 60%, transparent);
+  border: 1px solid var(--mat-sys-outline-variant);
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface-variant);
+    line-height: 1.3;
+    white-space: nowrap;
+
+    .material-symbols-outlined {
+      font-size: 18px;
+      color: var(--mat-sys-primary);
+      flex-shrink: 0;
+    }
+  }
+}
+
+@media (max-width: 520px) {
+  .trust-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+
+    li {
+      white-space: normal;
+    }
+  }
+}

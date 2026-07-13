@@ -1,0 +1,29 @@
+<mat-form-field appearance="outline" class="full-width">
+  <mat-label>{{ label() }}</mat-label>
+  <mat-icon matPrefix aria-hidden="true">lock</mat-icon>
+  <input
+    matInput
+    [type]="show() ? 'text' : 'password'"
+    [autocomplete]="autocomplete()"
+    spellcheck="false"
+    [formField]="field()"
+    [placeholder]="placeholder()"
+    (keydown.enter)="enter.emit()"
+  />
+  @if (hasToggle()) {
+    <button
+      mat-icon-button
+      matSuffix
+      type="button"
+      (click)="show.set(!show())"
+      [attr.aria-label]="show() ? 'Hide passphrase' : 'Show passphrase'"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">
+        {{ show() ? 'visibility_off' : 'visibility' }}
+      </span>
+    </button>
+  }
+  @if (error()) {
+    <mat-error>{{ error() }}</mat-error>
+  }
+</mat-form-field>

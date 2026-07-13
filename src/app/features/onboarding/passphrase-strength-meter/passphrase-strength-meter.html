@@ -1,0 +1,21 @@
+@if (passphrase().length > 0) {
+  <div class="passphrase-strength" [attr.data-score]="strength().score">
+    <div
+      class="strength-track"
+      role="meter"
+      aria-label="Passphrase strength"
+      [attr.aria-valuetext]="strength().label"
+      [attr.aria-valuenow]="strength().percent"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    >
+      <span class="strength-fill" [style.width.%]="strength().percent"></span>
+    </div>
+    <p class="strength-meta">
+      <span class="strength-label">{{ strength().label }}</span>
+      @if (strength().hint) {
+        <span class="strength-hint">{{ strength().hint }}</span>
+      }
+    </p>
+  </div>
+}

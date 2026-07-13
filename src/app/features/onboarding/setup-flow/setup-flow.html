@@ -1,0 +1,113 @@
+<mat-card appearance="outlined" class="onboarding-card">
+  <app-onboarding-hero
+    eyebrow="Get started · ~30 seconds"
+    titleLead="Bring your own"
+    titleAccent="Gemini key."
+    subtitle="Your key is never sent to our servers — it's stored only on this device and used to call Google's Gemini API directly from your browser. The entire agent loop runs on your device."
+  />
+
+  <app-trust-strip />
+
+  <mat-card-content class="onboarding-form">
+    <p class="lede">
+      Don't have a key yet? Grab a free one at
+      <a [href]="config.aiStudioApiKeyUrl" target="_blank" rel="noopener noreferrer"
+        >aistudio.google.com</a
+      >. The free tier covers Gemini 3 Flash and Flash-Lite, plenty for trying out
+      {{ config.appName }}.
+    </p>
+
+    <mat-form-field appearance="outline" class="full-width key-field">
+      <mat-label>Gemini API key</mat-label>
+      <mat-icon matPrefix aria-hidden="true">vpn_key</mat-icon>
+      <input
+        matInput
+        type="password"
+        autocomplete="off"
+        spellcheck="false"
+        [formField]="f.key"
+        placeholder="AIza…"
+      />
+      <mat-hint>Paste a key from AI Studio. Stays in your browser.</mat-hint>
+      @if (f.key().touched() && f.key().invalid()) {
+        <mat-error>{{ f.key().errors()[0]?.message }}</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="storage-row">
+      <mat-slide-toggle
+        [checked]="model().remember"
+        (change)="model.update((m) => ({ ...m, remember: $event.checked }))"
+      >
+        Remember on this device (encrypted with a passphrase)
+      </mat-slide-toggle>
+      <p class="storage-hint">
+        @if (model().remember) {
+          Stored encrypted in <code>localStorage</code> via WebCrypto AES-GCM.
+          You'll be asked for this passphrase next time you open the app.
+          <strong>It is not recoverable.</strong>
+        } @else {
+          Held in memory and <code>sessionStorage</code> for this tab. Wiped
+          when the tab closes.
+        }
+      </p>
+    </div>
+
+    @if (model().remember) {
+      <app-passphrase-field
+        [field]="f.passphrase"
+        label="Passphrase"
+        autocomplete="new-password"
+        placeholder="At least 12 characters"
+        [(show)]="showPassphrase"
+        [error]="passphraseError()"
+      />
+
+      <app-passphrase-strength-meter [passphrase]="model().passphrase" />
+
+      <app-passphrase-field
+        [field]="f.passphraseConfirm"
+        label="Confirm passphrase"
+        autocomplete="new-password"
+        [show]="showPassphrase()"
+        [hasToggle]="false"
+        [error]="confirmError()"
+      />
+    }
+
+    @if (connectionVerified()) {
+      <app-status-banner variant="success">Connection works. You can save.</app-status-banner>
+    }
+
+    @if (errorMessage) {
+      <app-status-banner variant="error">{{ errorMessage }}</app-status-banner>
+    }
+  </mat-card-content>
+
+  <mat-card-actions class="onboarding-actions" align="end">
+    <button mat-stroked-button type="button" (click)="test()" [disabled]="!canTest()">
+      @if (statusKind === 'testing') {
+        <mat-progress-spinner diameter="18" mode="indeterminate" />
+        Testing…
+      } @else {
+        <span class="material-symbols-outlined" aria-hidden="true">network_check</span>
+        Test connection
+      }
+    </button>
+
+    <button mat-flat-button color="primary" type="button" (click)="save()" [disabled]="!canSave()">
+      @if (statusKind === 'saving') {
+        <mat-progress-spinner diameter="18" mode="indeterminate" />
+        Saving…
+      } @else {
+        @if (model().remember) {
+          <span class="material-symbols-outlined" aria-hidden="true">lock</span>
+          Save (encrypted)
+        } @else {
+          <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+          Continue for this session
+        }
+      }
+    </button>
+  </mat-card-actions>
+</mat-card>

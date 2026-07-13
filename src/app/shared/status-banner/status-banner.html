@@ -1,0 +1,9 @@
+<div
+  class="banner"
+  [class.success]="variant() === 'success'"
+  [class.error]="variant() === 'error'"
+  [attr.role]="role()"
+>
+  <span class="material-symbols-outlined" aria-hidden="true">{{ effectiveIcon() }}</span>
+  <ng-content></ng-content>
+</div>

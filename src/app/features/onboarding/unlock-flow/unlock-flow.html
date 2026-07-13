@@ -1,0 +1,52 @@
+<mat-card appearance="outlined" class="onboarding-card onboarding-card--compact">
+  <app-onboarding-hero
+    eyebrow="Welcome back"
+    titleLead="Unlock your saved"
+    titleAccent="Gemini key."
+    subtitle="Enter the passphrase you used last time. The key is decrypted locally via WebCrypto, never sent anywhere."
+  />
+
+  <mat-card-content class="onboarding-form">
+    <app-passphrase-field
+      [field]="f.passphrase"
+      label="Passphrase"
+      autocomplete="current-password"
+      [(show)]="showPassphrase"
+      (enter)="canUnlock() && unlock()"
+    />
+
+    @if (errorMessage) {
+      <app-status-banner variant="error">{{ errorMessage }}</app-status-banner>
+    }
+  </mat-card-content>
+
+  <mat-card-actions class="onboarding-actions" align="end">
+    @if (confirmingForget()) {
+      <span class="forget-confirm-text">
+        Forget the stored key? You'll need to paste it again.
+      </span>
+      <button mat-button type="button" (click)="cancelForget()">Cancel</button>
+      <button mat-flat-button color="warn" type="button" (click)="forgetSavedKey()">
+        <span class="material-symbols-outlined" aria-hidden="true">delete_forever</span>
+        Forget key
+      </button>
+    } @else {
+      <button mat-button type="button" (click)="forgetSavedKey()">Forget saved key</button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="unlock()"
+        [disabled]="!canUnlock()"
+      >
+        @if (statusKind === 'unlocking') {
+          <mat-progress-spinner diameter="18" mode="indeterminate" />
+          Unlocking…
+        } @else {
+          <span class="material-symbols-outlined" aria-hidden="true">lock_open</span>
+          Unlock
+        }
+      </button>
+    }
+  </mat-card-actions>
+</mat-card>

@@ -1,0 +1,63 @@
+:host {
+  display: block;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0 0;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+
+  .material-symbols-outlined {
+    flex-shrink: 0;
+  }
+
+  &.success {
+    background-color: #d8f5e2;
+    color: #1e4b30;
+    border: 1px solid #9bd5b1;
+    animation: banner-in 220ms ease-out;
+
+    .material-symbols-outlined {
+      color: #1f8a4b;
+    }
+  }
+
+  &.error {
+    background-color: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+    animation: banner-in 220ms ease-out;
+  }
+}
+
+@keyframes banner-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+:host-context(html.theme-dark) .banner.success,
+html.theme-dark .banner.success {
+  background-color: color-mix(in srgb, #2fbb6a 22%, transparent);
+  color: #b8f0cd;
+  border-color: color-mix(in srgb, #2fbb6a 40%, transparent);
+
+  .material-symbols-outlined {
+    color: #5cd58a;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner {
+    animation: none;
+  }
+}
