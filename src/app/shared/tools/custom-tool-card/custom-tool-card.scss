@@ -34,7 +34,7 @@
 .head-icon {
   width: 36px;
   height: 36px;
-  font-size: 24px;
+  font-size: var(--text-2xl);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -77,7 +77,7 @@
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 50%, transparent);
 
   mat-icon {
-    font-size: 16px;
+    font-size: var(--text-md);
     width: 16px;
     height: 16px;
   }
@@ -261,7 +261,7 @@
   transition: color 160ms ease, background 160ms ease;
 
   mat-icon {
-    font-size: 16px;
+    font-size: var(--text-md);
     width: 16px;
     height: 16px;
   }

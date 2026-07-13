@@ -172,7 +172,7 @@
   h3 {
     margin: 0.65rem 0 0.4rem;
     font-family: var(--font-sans);
-    font-size: 16px;
+    font-size: var(--text-md);
     font-weight: 700;
     letter-spacing: -0.01em;
     color: var(--mat-sys-on-surface);
@@ -180,7 +180,7 @@
 
   p {
     margin: 0;
-    font-size: 13.5px;
+    font-size: var(--text-sm);
     line-height: 1.6;
     color: var(--mat-sys-on-surface-variant);
   }
@@ -221,7 +221,7 @@
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 600;
@@ -230,7 +230,7 @@
 
 code {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-xs);
   background-color: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
   color: var(--mat-sys-on-surface);
   padding: 0.12rem 0.4rem;

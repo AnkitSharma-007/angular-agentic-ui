@@ -255,7 +255,7 @@ Ordered into **independently shippable phases** — each leaves the app fully wo
 |   5   | ✅ **Done** | Color tokenization + light-mode pass    | P0-3                             | Overhaul  | Med-High | `refactor(theme): tokenize brand/chart colors + light-mode design pass`            |
 |   6   | ✅ **Done** | Component consolidation                 | P1-9 (full)                      | Overhaul  |   Med    | `refactor(ui): consolidate badge/metric/section/bar primitives`                    |
 |   7   | ✅ **Done** | Layout rhythm & responsive system       | P1-7                             | Overhaul  |   Med    | `refactor(layout): canonical breakpoints + intentional hero layout`                |
-|   8   | ⬜ Pending  | Voice/copy + type-ramp application      | P0-1 (depth), P2-11              | Polish    |   Low    | `polish(content): outcome-focused copy + consistent type ramp`                     |
+|   8   | ✅ **Done** | Voice/copy + type-ramp application      | P0-1 (depth), P2-11              | Polish    |   Low    | `polish(content): outcome-focused copy + consistent type ramp`                     |
 
 > Phases 1–3 are safe to ship on their own and already move the needle on trust/polish. If you only have time for one push, do 1–3. Phases 4–5 are the real "designed, not assembled" jump. 6–8 are elevation to world-class.
 
@@ -462,10 +462,29 @@ refactor(layout): canonical breakpoints and intentional hero layout
 Includes-AI-Code: true
 ```
 
-### Phase 8 — Voice/copy + type-ramp application
+### Phase 8 — Voice/copy + type-ramp application — ✅ Done (2026-07-13)
 
 **Goal:** Final elevation — outcome-focused language and disciplined type.
 **Addresses:** P0-1 (depth), P2-11.
+
+> **Implemented (2026-07-13) — light copy + bounded type ramp (user-chosen scope):**
+>
+> _Copy (light) — committed separately:_
+>
+> - Naturalized the four home sample prompts (dropped "render/plot the itinerary on a map" implementation verbs; kept the flights/hotel/activities/booking/map flow so the demo still exercises every feature).
+> - Softened onboarding storage copy to plain language — dropped `localStorage`/`sessionStorage`/`WebCrypto`/`AES-GCM` from the setup + unlock heroes, storage hint, and trust strip while keeping it accurate ("Encrypted on this device with your passphrase… It can't be recovered.").
+> - Fixed dev-shorthand microcopy: `chars` → `characters` (composer + thought), `Loading Leaflet…` → `Loading map…`, `Map module failed to load.` → `Couldn't load the map.`, `Mock data, for live demo purposes only.` → `Sample data, for demonstration only.`
+> - **Kept intentionally:** the app's agentic-UI **showcase identity** and the Guide's technical depth (per chosen scope). Raw telemetry was already gated into the observability drawer in Phase 2.
+>
+> _Type ramp (bounded):_
+>
+> - **No fractional-px font sizes remain anywhere** (verified). Mapped each `10.5/11.5/12.5/13.5/14.5px` to the nearest ramp token (`13.5/14.5→--text-sm`, `11.5/12.5→--text-xs`) or nearest integer (`10.5→11px` for micro-labels).
+> - **Tokenized every exact ramp-value text size** (`12/14/16/18/20/24px → var(--text-xs..2xl)`) across ~40 component stylesheets — zero visual change (root stays 16px, so `1rem = 16px`).
+> - **Left as-is (deliberate):** off-ramp integer sizes (`8/10/11/13/15/17/22/26/28/32/48/56px`) per the bounded scope, and the three global **icon-glyph** `font-size` bases in `styles.scss` (`.material-symbols-outlined` 24/18/14px) — those size icons, not type, so binding them to the text ramp would be wrong.
+> - **12px floor / mono-for-tabular:** most sub-12px text is intentional uppercase micro-labels/eyebrows (a legitimate floor exception), and mono is already reserved for metrics/code/tabular data, so no broad changes were needed here.
+> - **Validation:** `npm run build` clean; `npm test` → 627/627; lints clean.
+> - **⚠ Visual QA is yours:** the fractional→token rounding shifts a handful of labels by ≤0.5px (imperceptible); spot-check the guide, security, and composer text once in the browser.
+
 **Scope:**
 
 - Rewrite copy toward user outcomes across guide content, sample prompts, empty states, onboarding.

@@ -28,7 +28,7 @@
     margin-left: auto;
 
     .material-symbols-outlined {
-      font-size: 18px;
+      font-size: var(--text-lg);
       margin-right: 0.25rem;
       vertical-align: text-bottom;
     }
@@ -36,7 +36,7 @@
 }
 
 .tool-unknown .spinning {
-  font-size: 18px;
+  font-size: var(--text-lg);
   line-height: 1;
   animation: tool-loading-spin 0.9s linear infinite;
 }

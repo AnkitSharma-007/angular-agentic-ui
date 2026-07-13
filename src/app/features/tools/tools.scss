@@ -254,7 +254,7 @@
   color: var(--mat-sys-primary);
 
   mat-icon {
-    font-size: 20px;
+    font-size: var(--text-xl);
     width: 20px;
     height: 20px;
   }
@@ -285,7 +285,7 @@
   animation: badge-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
   mat-icon {
-    font-size: 16px;
+    font-size: var(--text-md);
     width: 16px;
     height: 16px;
   }
@@ -474,7 +474,7 @@
   color: color-mix(in srgb, var(--mat-sys-on-surface) 65%, transparent);
 
   mat-icon {
-    font-size: 16px;
+    font-size: var(--text-md);
     width: 16px;
     height: 16px;
   }
@@ -559,7 +559,7 @@
   color: var(--mat-sys-error);
 
   mat-icon {
-    font-size: 24px;
+    font-size: var(--text-2xl);
     width: 24px;
     height: 24px;
   }
@@ -583,7 +583,7 @@
 
   p {
     margin: 0;
-    font-size: 14px;
+    font-size: var(--text-sm);
     line-height: 1.55;
     color: var(--mat-sys-on-surface-variant);
   }

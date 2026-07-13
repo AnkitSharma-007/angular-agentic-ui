@@ -78,7 +78,7 @@
 }
 
 .pill-chev {
-  font-size: 18px;
+  font-size: var(--text-lg);
   width: 18px;
   height: 18px;
   margin-left: 0.125rem;
@@ -327,7 +327,7 @@
   transition: transform 180ms ease, box-shadow 180ms ease;
 
   mat-icon {
-    font-size: 18px;
+    font-size: var(--text-lg);
     width: 18px;
     height: 18px;
   }

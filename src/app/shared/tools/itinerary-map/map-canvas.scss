@@ -35,7 +35,7 @@
   display: block;
   margin-top: 0.2rem;
   color: var(--mat-sys-on-surface-variant);
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .leaflet-container {

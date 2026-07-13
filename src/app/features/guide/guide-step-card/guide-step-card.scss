@@ -50,7 +50,7 @@
 
 .step-index-num {
   font-family: var(--font-sans);
-  font-size: 18px;
+  font-size: var(--text-lg);
   font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -82,7 +82,7 @@
 
 .step-demo {
   margin: 0;
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   color: var(--mat-sys-on-surface-variant);
 }
@@ -95,7 +95,7 @@
   gap: 0.32rem;
 
   li {
-    font-size: 13.5px;
+    font-size: var(--text-sm);
     line-height: 1.55;
     color: var(--mat-sys-on-surface);
   }
@@ -115,7 +115,7 @@
   color: var(--mat-sys-on-surface-variant);
 
   span.material-symbols-outlined {
-    font-size: 18px;
+    font-size: var(--text-lg);
     color: var(--mat-sys-tertiary);
     margin-top: 1px;
   }

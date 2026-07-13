@@ -90,7 +90,7 @@
   color: var(--mat-sys-primary);
 
   .material-symbols-outlined {
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
 }
 
@@ -110,7 +110,7 @@
 }
 
 .sample-text {
-  font-size: 12.5px;
+  font-size: var(--text-xs);
   line-height: 1.5;
   color: var(--mat-sys-on-surface-variant);
   display: -webkit-box;
@@ -121,7 +121,7 @@
 }
 
 .sample-arrow {
-  font-size: 18px;
+  font-size: var(--text-lg);
   color: var(--mat-sys-primary);
   opacity: 0.6;
   transition: transform 0.18s ease, opacity 0.18s ease;

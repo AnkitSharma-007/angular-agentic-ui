@@ -59,12 +59,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  font-size: 13.5px;
+  font-size: var(--text-sm);
 
   strong { font-weight: 600; }
   .muted {
     font-family: var(--font-mono);
-    font-size: 11.5px;
+    font-size: var(--text-xs);
     color: var(--mat-sys-on-surface-variant);
   }
 }
@@ -101,7 +101,7 @@
     margin-left: var(--space-2);
 
     .material-symbols-outlined {
-      font-size: 18px;
+      font-size: var(--text-lg);
       margin-right: var(--space-1);
       vertical-align: text-bottom;
     }
@@ -170,11 +170,11 @@
   background-color: var(--mat-sys-surface-container);
   border: 1px solid var(--mat-sys-outline-variant);
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   color: var(--mat-sys-on-surface-variant);
 
   .material-symbols-outlined {
-    font-size: 14px;
+    font-size: var(--text-sm);
     color: var(--mat-sys-primary);
   }
 }
@@ -201,7 +201,7 @@
   margin: 0.1rem 0 0;
   align-self: flex-end;
   max-width: 100%;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   line-height: 1.4;
   color: var(--mat-sys-on-surface-variant);
 

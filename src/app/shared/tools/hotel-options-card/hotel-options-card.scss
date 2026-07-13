@@ -26,7 +26,7 @@
   }
 
   .route {
-    font-size: 14px;
+    font-size: var(--text-sm);
     color: var(--mat-sys-on-surface);
     font-weight: 500;
     overflow: hidden;
@@ -153,7 +153,7 @@
   }
 
   .material-symbols-outlined {
-    font-size: 14px;
+    font-size: var(--text-sm);
   }
 }
 
@@ -175,7 +175,7 @@
   font-variant-numeric: tabular-nums;
 
   .star {
-    font-size: 14px;
+    font-size: var(--text-sm);
     color: var(--mat-sys-primary);
   }
 

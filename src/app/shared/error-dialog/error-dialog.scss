@@ -16,7 +16,7 @@
 }
 
 .dialog-icon {
-  font-size: 24px;
+  font-size: var(--text-2xl);
 }
 
 .dialog-title {
@@ -29,7 +29,7 @@
 
 .dialog-message {
   margin: 0 0 1rem;
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.55;
   color: var(--mat-sys-on-surface-variant);
 }
@@ -39,7 +39,7 @@
 
   summary {
     cursor: pointer;
-    font-size: 12.5px;
+    font-size: var(--text-xs);
     color: var(--mat-sys-on-surface-variant);
   }
 
@@ -52,7 +52,7 @@
     background-color: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
     border: 1px solid var(--mat-sys-outline-variant);
     font-family: var(--font-mono);
-    font-size: 11.5px;
+    font-size: var(--text-xs);
     line-height: 1.5;
     white-space: pre-wrap;
     word-break: break-word;

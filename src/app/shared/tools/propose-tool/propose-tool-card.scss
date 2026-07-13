@@ -61,7 +61,7 @@
 
   .tool-sub code {
     font-family: var(--font-mono);
-    font-size: 12.5px;
+    font-size: var(--text-xs);
     color: var(--mat-sys-primary);
     overflow-wrap: anywhere;
   }
@@ -174,7 +174,7 @@ app-section-head {
 
 .mono-field textarea {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: var(--text-xs);
   line-height: 1.5;
 }
 
@@ -211,7 +211,7 @@ app-section-head {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   color: var(--mat-sys-on-surface-variant);
 
   mat-icon {
@@ -230,7 +230,7 @@ app-section-head {
   margin: 0;
   padding: 0.65rem;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
   color: var(--mat-sys-on-surface);
   white-space: pre-wrap;
@@ -271,7 +271,7 @@ app-section-head {
   align-items: flex-start;
   gap: 0.5rem;
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.5;
   color: var(--mat-sys-on-surface);
 

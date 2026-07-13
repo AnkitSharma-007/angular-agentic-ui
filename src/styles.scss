@@ -181,7 +181,7 @@ textarea:focus-visible {
 
 .tool-name {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--mat-sys-on-surface-variant);
   letter-spacing: 0.02em;
 }

@@ -23,14 +23,14 @@ mat-icon[matPrefix] {
   gap: 0.35rem;
   padding: 0.3rem 0.65rem;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--mat-sys-on-surface-variant);
   background-color: color-mix(in srgb, var(--mat-sys-surface-container) 60%, transparent);
   border: 1px solid var(--mat-sys-outline-variant);
 
   mat-icon {
-    font-size: 16px;
+    font-size: var(--text-md);
     width: 16px;
     height: 16px;
     color: var(--mat-sys-primary);

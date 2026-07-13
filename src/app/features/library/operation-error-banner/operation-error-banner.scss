@@ -44,7 +44,7 @@
   color: var(--mat-sys-error);
 
   mat-icon {
-    font-size: 18px;
+    font-size: var(--text-lg);
     width: 18px;
     height: 18px;
   }
@@ -58,7 +58,7 @@
   min-width: 0;
 
   strong {
-    font-size: 14px;
+    font-size: var(--text-sm);
     font-weight: 600;
     color: var(--mat-sys-on-surface);
   }

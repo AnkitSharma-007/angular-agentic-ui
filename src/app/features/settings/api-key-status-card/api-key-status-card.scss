@@ -27,14 +27,14 @@
   margin: 0.75rem 0 0;
   padding: 0.6rem 0.75rem;
   border-radius: 10px;
-  font-size: 12px;
+  font-size: var(--text-xs);
   line-height: 1.5;
   background-color: var(--mat-sys-error-container);
   color: var(--mat-sys-on-error-container);
 
   mat-icon {
     flex-shrink: 0;
-    font-size: 18px;
+    font-size: var(--text-lg);
     width: 18px;
     height: 18px;
   }
