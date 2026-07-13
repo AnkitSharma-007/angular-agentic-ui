@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
@@ -18,7 +18,6 @@ import type { SearchHotelsArgs, SearchHotelsResult } from './hotel-options-card.
   ],
   templateUrl: './hotel-options-card.html',
   styleUrl: './hotel-options-card.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HotelOptionsCardComponent {
   readonly callId = input<string>('');

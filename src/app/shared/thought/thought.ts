@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   effect,
@@ -16,7 +15,6 @@ import { MarkdownComponent } from '../markdown/markdown';
   imports: [MatExpansionModule, MatProgressBarModule, MarkdownComponent],
   templateUrl: './thought.html',
   styleUrl: './thought.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThoughtComponent {
   private readonly store = inject(AgentEventStore);

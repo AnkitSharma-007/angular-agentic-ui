@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -10,7 +10,6 @@ import { PageHeaderComponent } from '../../shared/page-header/page-header';
   imports: [MatCardModule, MatIconModule, PageHeaderComponent],
   templateUrl: './about.html',
   styleUrl: './about.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AboutComponent {
   protected readonly config = APP_CONFIG;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,7 +29,6 @@ interface DeepDive {
   imports: [RouterLink, MatCardModule, MatButtonModule, PageHeaderComponent],
   templateUrl: './guide.html',
   styleUrl: './guide.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GuideComponent {
   protected readonly config = APP_CONFIG;

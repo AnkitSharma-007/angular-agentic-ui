@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MapCanvasComponent } from './map-canvas';
@@ -11,7 +11,6 @@ import type { RenderItineraryArgs, RenderItineraryResult } from './itinerary-map
   imports: [MatCardModule, MatProgressBarModule, MapCanvasComponent],
   templateUrl: './itinerary-map.html',
   styleUrl: './itinerary-map.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ItineraryMapComponent {
   readonly callId = input<string>('');

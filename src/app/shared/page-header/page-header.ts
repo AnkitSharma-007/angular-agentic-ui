@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-page-header',
   imports: [],
   templateUrl: './page-header.html',
   styleUrl: './page-header.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PageHeaderComponent {
   readonly icon = input<string | null>(null);

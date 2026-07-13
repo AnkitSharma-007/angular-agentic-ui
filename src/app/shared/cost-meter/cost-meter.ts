@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
@@ -18,7 +18,6 @@ import { ZERO_USAGE } from '../../core/observability/usage.types';
   imports: [MatIconModule, MatButtonModule, RouterLink, CdkTrapFocus],
   templateUrl: './cost-meter.html',
   styleUrl: './cost-meter.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CostMeterComponent {
   private readonly accountant = inject(TokenAccountantService);

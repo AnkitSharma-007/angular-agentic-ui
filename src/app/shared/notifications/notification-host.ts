@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import {
@@ -20,7 +20,6 @@ const ICON_BY_KIND: Record<NotificationKind, string> = {
   imports: [MatButtonModule, MatIconModule],
   templateUrl: './notification-host.html',
   styleUrl: './notification-host.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificationHostComponent {
   protected readonly notifications = inject(NotificationService);

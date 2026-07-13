@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -76,7 +75,6 @@ function sampleValue(type: CustomToolParameterType): unknown {
   ],
   templateUrl: './propose-tool-card.html',
   styleUrl: './propose-tool-card.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProposeToolCardComponent {
   private readonly interrupts = inject(InterruptService);

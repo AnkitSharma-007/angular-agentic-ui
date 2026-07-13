@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { Component, computed, input, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,7 +25,6 @@ const TITLE_KEYS = ['name', 'title', 'label'] as const;
   imports: [NgTemplateOutlet, MatCardModule, MatIconModule],
   templateUrl: './custom-tool-card.html',
   styleUrl: './custom-tool-card.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomToolCardComponent {
   readonly callId = input<string>('');

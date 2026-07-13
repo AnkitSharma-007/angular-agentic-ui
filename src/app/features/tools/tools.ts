@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   computed,
@@ -62,7 +61,6 @@ function emptyBuilder(): BuilderForm {
   ],
   templateUrl: './tools.html',
   styleUrl: './tools.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToolsComponent {
   protected readonly customTools = inject(CustomToolsService);

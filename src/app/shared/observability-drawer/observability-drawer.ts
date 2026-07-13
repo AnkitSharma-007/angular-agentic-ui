@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
@@ -29,7 +28,6 @@ interface RenderedRow extends TimelineRow {
   imports: [MatIconModule, MatButtonModule, CdkTrapFocus],
   templateUrl: './observability-drawer.html',
   styleUrl: './observability-drawer.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObservabilityDrawerComponent {
   protected readonly drawer = inject(ObservabilityDrawerService);

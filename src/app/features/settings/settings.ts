@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   computed,
@@ -73,7 +72,6 @@ const THEME_OPTIONS: readonly ThemeOption[] = [
   ],
   templateUrl: './settings.html',
   styleUrl: './settings.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsComponent {
   protected readonly apiKey = inject(ApiKeyService);

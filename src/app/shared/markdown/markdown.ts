@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   computed,
@@ -55,7 +54,6 @@ export function renderMarkdown(source: string): string {
   selector: 'app-markdown',
   template: `<div class="md" [innerHTML]="rendered()"></div>`,
   styleUrl: './markdown.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MarkdownComponent {
   readonly source = input.required<string>();

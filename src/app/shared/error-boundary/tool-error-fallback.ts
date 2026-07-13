@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 
 // Interim fallback when a tool module fails to load; runtime throws inside rendered tools still reach the global ErrorHandler.
@@ -7,7 +7,6 @@ import { MatButtonModule } from '@angular/material/button';
   imports: [MatButtonModule],
   templateUrl: './tool-error-fallback.html',
   styleUrl: './tool-error-fallback.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToolErrorFallbackComponent {
   readonly toolName = input.required<string>();

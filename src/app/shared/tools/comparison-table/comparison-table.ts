@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -19,7 +18,6 @@ import type {
   imports: [MatButtonModule, MatCardModule],
   templateUrl: './comparison-table.html',
   styleUrl: './comparison-table.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ComparisonTableComponent {
   private readonly interrupts = inject(InterruptService);

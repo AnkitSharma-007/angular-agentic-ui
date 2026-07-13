@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { AgentRegistry } from '../../../core/agents/agent-registry.service';
@@ -9,7 +9,6 @@ import type { ToolCallStatus } from '../../../core/streaming/agent-event.store';
   imports: [MatCardModule, MatIconModule],
   templateUrl: './handoff-notice.html',
   styleUrl: './handoff-notice.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HandoffNoticeComponent {
   private readonly agents = inject(AgentRegistry);

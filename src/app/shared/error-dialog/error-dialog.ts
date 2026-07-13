@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,7 +28,6 @@ const ICON_BY_TONE: Record<ErrorDialogTone, string> = {
   imports: [MatButtonModule, MatIconModule],
   templateUrl: './error-dialog.html',
   styleUrl: './error-dialog.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ErrorDialogComponent {
   protected readonly data = inject<ErrorDialogData>(DIALOG_DATA);

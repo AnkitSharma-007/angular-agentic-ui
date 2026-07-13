@@ -1,6 +1,5 @@
 import {
   AfterViewInit,
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   OnDestroy,
@@ -17,7 +16,6 @@ import type { Waypoint, WaypointKind } from './itinerary-map.types';
   selector: 'app-map-canvas',
   template: `<div #host class="map-host" role="img" [attr.aria-label]="ariaLabel()"></div>`,
   styleUrl: './map-canvas.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
 export class MapCanvasComponent implements AfterViewInit, OnDestroy {

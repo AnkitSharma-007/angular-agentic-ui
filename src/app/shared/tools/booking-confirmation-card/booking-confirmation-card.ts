@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -27,7 +26,6 @@ import type { BookFlightArgs, BookFlightResult } from './booking-confirmation-ca
   ],
   templateUrl: './booking-confirmation-card.html',
   styleUrl: './booking-confirmation-card.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookingConfirmationCardComponent {
   private readonly interrupts = inject(InterruptService);

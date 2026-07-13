@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
@@ -11,7 +11,6 @@ import type { SearchFlightsArgs, SearchFlightsResult } from './flight-options-ca
   imports: [MatCardModule, MatChipsModule, MatDividerModule, MatProgressBarModule],
   templateUrl: './flight-options-card.html',
   styleUrl: './flight-options-card.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlightOptionsCardComponent {
   readonly callId = input<string>('');

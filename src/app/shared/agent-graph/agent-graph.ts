@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { AgentRegistry } from '../../core/agents/agent-registry.service';
 
@@ -7,7 +7,6 @@ import { AgentRegistry } from '../../core/agents/agent-registry.service';
   imports: [MatIconModule],
   templateUrl: './agent-graph.html',
   styleUrl: './agent-graph.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AgentGraphComponent {
   private readonly registry = inject(AgentRegistry);

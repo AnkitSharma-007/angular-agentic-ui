@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   inject,
   signal,
@@ -57,7 +56,6 @@ interface OnboardingForm {
   ],
   templateUrl: './onboarding.html',
   styleUrl: './onboarding.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OnboardingComponent {
   protected readonly apiKey = inject(ApiKeyService);

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import type { ToolCallStatus } from '../../../core/streaming/agent-event.store';
@@ -26,7 +26,6 @@ interface FindActivitiesResult {
   imports: [MatCardModule, MatIconModule],
   templateUrl: './activity-list.html',
   styleUrl: './activity-list.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ActivityListComponent {
   readonly callId = input<string>('');
