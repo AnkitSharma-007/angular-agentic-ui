@@ -484,6 +484,14 @@ Includes-AI-Code: true
 > - **12px floor / mono-for-tabular:** most sub-12px text is intentional uppercase micro-labels/eyebrows (a legitimate floor exception), and mono is already reserved for metrics/code/tabular data, so no broad changes were needed here.
 > - **Validation:** `npm run build` clean; `npm test` → 627/627; lints clean.
 > - **⚠ Visual QA is yours:** the fractional→token rounding shifts a handful of labels by ≤0.5px (imperceptible); spot-check the guide, security, and composer text once in the browser.
+>
+> _Copy (medium follow-up, 2026-07-17) — execution-noun translation:_
+>
+> - Translated pipeline vocabulary in **user-facing** surfaces only: **`run` → `conversation`** across the Library page (title, subtitle, empty/error/unavailable states), the home **Save conversation** button, the replay banner, the replay list-item delete affordance, the storage-full warning (`normalize-error.ts`), the two `home.ts` replay-load errors, the home **Saved conversations** link, and the Security page's saved-data card. **`events` → `steps`** in the replay list-item meta.
+> - Rewrote the **budget banner** away from "The agent loop stopped after hitting the `{{kind}}` cap." → "Budget reached. It stopped after hitting your `{{kind}}` limit." (kept the dynamic `<code>{{kind}}</code>` value).
+> - Softened storage jargon in the Library empty/error copy (dropped "IndexedDB / replay store / quota hit / aborted transaction / demo backup / deterministic test fixtures").
+> - **Kept intentionally (per Medium scope):** the hero + Guide technical framing (incl. `guide-content.ts` "Saved runs persist in IndexedDB…"), the observability drawer / cost-meter / agent-graph instrumentation, and the Security page's factual `IndexedDB` reference.
+> - Updated 3 spec assertions in lockstep (`42 events`→`42 steps`; storage-full message ×2). **Validation:** `npm run build` clean; `npm test` → 627/627; lints clean.
 
 **Scope:**
 

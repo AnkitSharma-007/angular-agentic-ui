@@ -14,7 +14,7 @@
         </span>
         <span class="meta-chunk">
           <mat-icon class="meta-icon">stream</mat-icon>
-          <span>{{ summary().eventCount }} events</span>
+          <span>{{ summary().eventCount }} steps</span>
         </span>
         @if (summary().sizeBytes !== undefined) {
           <span
@@ -41,8 +41,8 @@
         <button
           mat-icon-button
           type="button"
-          title="Delete saved run"
-          aria-label="Delete saved run"
+          title="Delete saved conversation"
+          aria-label="Delete saved conversation"
           (click)="delete.emit()"
         >
           <mat-icon>delete_outline</mat-icon>

@@ -86,8 +86,8 @@
       <div class="banner budget-breach" role="alert">
         <span class="material-symbols-outlined" aria-hidden="true">shield_with_heart</span>
         <div>
-          <strong>Budget breached.</strong>
-          The agent loop stopped after hitting the <code>{{ kind }}</code> cap.
+          <strong>Budget reached.</strong>
+          It stopped after hitting your <code>{{ kind }}</code> limit.
           <a routerLink="/settings">Adjust budget</a>
         </div>
       </div>
@@ -118,7 +118,7 @@
                 }
                 @default {
                   <span class="material-symbols-outlined" aria-hidden="true">save</span>
-                  Save run
+                  Save conversation
                 }
               }
             </button>

@@ -456,7 +456,7 @@ export class HomeComponent implements OnInit {
       if (!payload) {
         // Missing run: Back-to-Library recovery and drop dead ?replay= param on refresh.
         this.replayLoadError.set(
-          "We couldn't find that saved run. It may have been deleted from this browser.",
+          "We couldn't find that saved conversation. It may have been deleted from this browser.",
         );
         this.clearReplayQueryParam();
         return;
@@ -464,7 +464,7 @@ export class HomeComponent implements OnInit {
       // Validate untrusted stored shape; ensureRegisteredForReplay skips invalid embedded specs.
       if (!isValidReplayPayload(payload)) {
         this.replayLoadError.set(
-          "This saved run is corrupted or from an incompatible version and can't be replayed.",
+          "This saved conversation is corrupted or from an incompatible version and can't be replayed.",
         );
         this.clearReplayQueryParam();
         return;

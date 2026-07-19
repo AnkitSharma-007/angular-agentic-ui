@@ -3,9 +3,9 @@
     icon="video_library"
     eyebrow="Replay studio"
     titleStart="Saved "
-    titleAccent="runs"
+    titleAccent="conversations"
     titleEnd="."
-    subtitle="Locally-persisted replays of past Gemini turns. Stored in your browser via IndexedDB; never leaves your device."
+    subtitle="Replays of your past conversations, kept only in this browser. Nothing ever leaves your device."
   >
     @if (summaries().length > 0) {
       <div pageHeaderActions class="header-actions">
@@ -33,9 +33,8 @@
       [detail]="lastError()"
     >
       <p class="state-desc">
-        IndexedDB couldn't be opened in this browser session. Saved runs are
-        disabled. Private-browsing or strict storage settings are the usual
-        cause.
+        This browser won't let the app store data, so saving is turned off.
+        Private browsing or strict storage settings are the usual cause.
       </p>
     </app-storage-state-card>
   } @else if (!loaded()) {
@@ -43,21 +42,20 @@
   } @else if (refreshFailed()) {
     <app-storage-state-card
       icon="sync_problem"
-      heading="Couldn't load saved runs"
+      heading="Couldn't load saved conversations"
       variant="error"
       [detail]="lastError()"
     >
       <p class="state-desc">
-        The replay store opened but reading from it failed. A quota hit, an
-        aborted transaction, or a corrupt record are the usual causes.
+        We reached your saved conversations but couldn't read them. This can
+        happen if storage is full or a saved item is damaged.
       </p>
     </app-storage-state-card>
   } @else if (isEmpty()) {
-    <app-storage-state-card icon="inbox" heading="No saved runs yet" variant="empty">
+    <app-storage-state-card icon="inbox" heading="No saved conversations yet" variant="empty">
       <p class="state-desc">
-        Finish a turn on the chat page, then hit <strong>Save run</strong> to
-        make it replayable from here. Useful for demo backup and deterministic
-        test fixtures.
+        After a response finishes, use <strong>Save conversation</strong> to
+        keep it here. You can replay it anytime, exactly as it happened.
       </p>
       <div card-cta class="empty-cta">
         <a mat-flat-button color="primary" routerLink="/">

@@ -198,7 +198,7 @@ describe('ReplayService', () => {
 
     await expect(service.save(makePayload({ id: 'q' }))).rejects.toBeInstanceOf(DOMException);
     expect(service.lastError()).toBe(
-      'Your browser storage is full. Delete some saved runs and try again.',
+      'Your browser storage is full. Delete some saved conversations and try again.',
     );
   });
 

@@ -46,7 +46,7 @@ describe('ReplayListItemComponent', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Weekend in Goa');
     expect(text).toContain('Plan a weekend trip');
-    expect(text).toContain('42 events');
+    expect(text).toContain('42 steps');
   });
 
   it('flags a large replay with the warning icon', async () => {

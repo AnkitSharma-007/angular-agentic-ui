@@ -157,7 +157,7 @@ describe('HomeComponent.save() — turn scoping', () => {
 
     expect(instance.saveStatus()).toBe('error');
     expect(instance.saveWarning()).toBe(
-      'Your browser storage is full. Delete some saved runs and try again.',
+      'Your browser storage is full. Delete some saved conversations and try again.',
     );
   });
 });

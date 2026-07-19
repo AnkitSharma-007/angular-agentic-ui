@@ -58,7 +58,7 @@ export function normalizeError(err: unknown, context?: Record<string, unknown>):
   if (isQuotaExceeded(err)) {
     return new StorageError({
       code: 'quota_exceeded',
-      userMessage: 'Your browser storage is full. Delete some saved runs and try again.',
+      userMessage: 'Your browser storage is full. Delete some saved conversations and try again.',
       technicalMessage,
       context,
       cause: err,
