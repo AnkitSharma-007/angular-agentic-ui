@@ -43,7 +43,7 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
-# Local planning docs — kept out of version control
-AI_FEATURE_PROPOSALS.md
-IMPLEMENTATION_PLAN.md
-PRODUCTION_READINESS_REVIEW.md
+# Local QA test plan and generated test artifacts — kept out of version control
+TEST_CASES.md
+/artifacts/
+/e2e/artifacts/
